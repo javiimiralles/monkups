@@ -6,6 +6,7 @@ import {
   type ShadowMode,
   type WatermarkPosition,
 } from './scene'
+import type { Animation } from './animation'
 import type { FrameStyle, Rotation } from './styles'
 
 /** Every design choice a project or template stores; media and export preferences are separate. */
@@ -19,6 +20,7 @@ export type Settings = {
   background: Background
   scene: { kind: SceneKind; opacity: number }
   watermark: { text: string; position: WatermarkPosition; opacity: number }
+  animation: Animation
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -31,6 +33,7 @@ export const DEFAULT_SETTINGS: Settings = {
   background: { kind: 'gradient', from: GRADIENT_PRESETS[0][0], to: GRADIENT_PRESETS[0][1], angle: 135 },
   scene: { kind: 'none', opacity: 40 },
   watermark: { text: '', position: 'bottom-right', opacity: 70 },
+  animation: { preset: 'none', duration: 4, focus: { x: 50, y: 50 } },
 }
 
 const KEYS = Object.keys(DEFAULT_SETTINGS) as (keyof Settings)[]
@@ -119,6 +122,11 @@ export const TEMPLATES: Template[] = [
     },
   },
 ]
+
+/** Saved projects may predate newer settings; missing ones fall back to their defaults. */
+export function restoreSettings(saved: Partial<Settings>): Settings {
+  return { ...DEFAULT_SETTINGS, ...saved }
+}
 
 export function applyTemplate(template: Template): Settings {
   return { ...DEFAULT_SETTINGS, ...template.settings }

@@ -1,19 +1,31 @@
-import { domToBlob, domToJpeg, domToPng } from 'modern-screenshot'
-import type { ExportFormat } from '../state/editorStore'
+import { domToBlob } from 'modern-screenshot'
 
 // The stage is shown through a CSS scale transform; offset sizes ignore it, so the export keeps full resolution.
 const fullSize = (node: HTMLElement) => ({ width: node.offsetWidth, height: node.offsetHeight })
 
-export async function downloadImage(node: HTMLElement, format: ExportFormat, scale: number) {
-  // JPEG has no alpha: flatten a transparent background onto white.
-  const dataUrl =
-    format === 'png'
-      ? await domToPng(node, { scale, ...fullSize(node) })
-      : await domToJpeg(node, { scale, ...fullSize(node), quality: 0.95, backgroundColor: '#ffffff' })
+export function saveBlob(blob: Blob, extension: string) {
+  const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
-  a.href = dataUrl
-  a.download = `monkups-${Date.now()}.${format === 'png' ? 'png' : 'jpg'}`
+  a.href = url
+  a.download = `monkups-${Date.now()}.${extension}`
   a.click()
+  // Give the browser time to start the download before releasing the blob.
+  setTimeout(() => URL.revokeObjectURL(url), 60_000)
+}
+
+export async function downloadImage(node: HTMLElement, format: 'png' | 'jpeg', scale: number) {
+  // JPEG has no alpha: flatten a transparent background onto white.
+  const blob =
+    format === 'png'
+      ? await domToBlob(node, { scale, ...fullSize(node), type: 'image/png' })
+      : await domToBlob(node, {
+          scale,
+          ...fullSize(node),
+          type: 'image/jpeg',
+          quality: 0.95,
+          backgroundColor: '#ffffff',
+        })
+  saveBlob(blob, format === 'png' ? 'png' : 'jpg')
 }
 
 export async function copyImage(node: HTMLElement, scale: number) {

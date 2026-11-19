@@ -1,7 +1,8 @@
 import { forwardRef, useEffect, useRef, useState } from 'react'
 import { deviceAspect, fitBox, getDevice } from '../domain/devices'
 import { backgroundCss, frameSize, sceneLayer, shadowCss } from '../domain/scene'
-import { rotationCss, stylePad } from '../domain/styles'
+import { IDENTITY, poseAt, poseCss } from '../domain/animation'
+import { stylePad } from '../domain/styles'
 import { useEditor } from '../state/editorStore'
 import { DeviceFrame } from './DeviceFrame'
 
@@ -9,8 +10,24 @@ const PADDING = 0.08
 
 /** Renders the scene at full export resolution, scaled down to fit the viewport. */
 export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
-  const { mediaUrl, mediaSize, deviceId, ratio, radius, frameStyle, rotation, shadow, background, scene, watermark } =
-    useEditor()
+  const {
+    mediaUrl,
+    mediaSize,
+    deviceId,
+    ratio,
+    radius,
+    frameStyle,
+    rotation,
+    shadow,
+    background,
+    scene,
+    watermark,
+    animation,
+    playhead,
+  } = useEditor()
+  // The animation pose adds to the static design rotation; with no playhead the design is shown as-is.
+  const pose = playhead === null ? IDENTITY : poseAt(animation.preset, playhead)
+  const transform = poseCss({ ...pose, rx: pose.rx + rotation.x, ry: pose.ry + rotation.y, rz: pose.rz + rotation.z })
   const { width, height } = frameSize(ratio)
   const areaRef = useRef<HTMLDivElement>(null)
   const [fit, setFit] = useState(0.4)
@@ -67,7 +84,7 @@ export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
               }}
             />
             {sceneBack}
-            <div style={{ transform: rotationCss(rotation) }}>
+            <div style={{ transform, transformOrigin: `${animation.focus.x}% ${animation.focus.y}%` }}>
               <DeviceFrame
                 device={device}
                 width={size.width}

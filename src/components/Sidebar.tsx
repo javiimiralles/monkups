@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { ANIMATION_PRESETS } from '../domain/animation'
 import { DEVICE_GROUPS, DEVICES, getDevice } from '../domain/devices'
 import {
   GRADIENT_PRESETS,
@@ -324,6 +325,56 @@ export function Sidebar() {
             </label>
           </>
         )}
+      </section>
+      <section>
+        <h3>Animation</h3>
+        <div className="styles">
+          {ANIMATION_PRESETS.map((a) => (
+            <button
+              key={a.id}
+              className={s.animation.preset === a.id ? 'on' : ''}
+              onClick={() =>
+                s.set({
+                  animation: { ...s.animation, preset: a.id },
+                  // Video formats only make sense while something moves.
+                  ...(a.id === 'none' && ['mp4', 'webm', 'gif'].includes(s.exportFormat)
+                    ? { exportFormat: 'png' }
+                    : {}),
+                })
+              }
+            >
+              {a.label}
+            </button>
+          ))}
+        </div>
+        {s.animation.preset !== 'none' && (
+          <label>
+            Duration {s.animation.duration}s
+            <input
+              type="range"
+              min={2}
+              max={10}
+              step={0.5}
+              value={s.animation.duration}
+              onChange={(e) => s.set({ animation: { ...s.animation, duration: +e.target.value } })}
+            />
+          </label>
+        )}
+        {['zoom-in', 'zoom-out', 'pop'].includes(s.animation.preset) &&
+          (['x', 'y'] as const).map((axis) => (
+            <label key={axis}>
+              Focus {axis.toUpperCase()} {s.animation.focus[axis]}%
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={s.animation.focus[axis]}
+                onChange={(e) =>
+                  s.set({ animation: { ...s.animation, focus: { ...s.animation.focus, [axis]: +e.target.value } } })
+                }
+              />
+            </label>
+          ))}
       </section>
     </aside>
   )

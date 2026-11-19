@@ -1,7 +1,9 @@
 import { create } from 'zustand'
-import { DEFAULT_SETTINGS, type ProjectRecord, type Settings } from '../domain/project'
+import { DEFAULT_SETTINGS, restoreSettings, type ProjectRecord, type Settings } from '../domain/project'
 
-export type ExportFormat = 'png' | 'jpeg'
+export type VideoFormat = 'mp4' | 'webm' | 'gif'
+export type ExportFormat = 'png' | 'jpeg' | VideoFormat
+export const isVideoFormat = (f: ExportFormat): f is VideoFormat => f === 'mp4' || f === 'webm' || f === 'gif'
 
 type Actions = 'setMedia' | 'setBackgroundImage' | 'openProject' | 'newProject' | 'set'
 
@@ -10,6 +12,8 @@ type EditorState = Settings & {
   mediaSize: { width: number; height: number } | null
   /** The saved project being edited, if any. */
   project: { id: string; name: string } | null
+  /** Normalized animation time while previewing or rendering video; null shows the static design. */
+  playhead: number | null
   exportFormat: ExportFormat
   exportScale: 1 | 2
   setMedia: (file: File) => void
@@ -35,6 +39,7 @@ export const useEditor = create<EditorState>((setState, get) => {
     mediaUrl: null,
     mediaSize: null,
     project: null,
+    playhead: null,
     exportFormat: 'png',
     exportScale: 1,
     setMedia: (file) => {
@@ -57,7 +62,7 @@ export const useEditor = create<EditorState>((setState, get) => {
     },
     openProject: (record) => {
       releaseUrls()
-      const { settings } = record
+      const settings = restoreSettings(record.settings)
       const background =
         record.backgroundImage && settings.background.kind === 'image'
           ? { ...settings.background, url: URL.createObjectURL(record.backgroundImage) }
