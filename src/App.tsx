@@ -97,10 +97,17 @@ export function App() {
               <option value={2}>2x</option>
             </select>
           )}
-          <button disabled={!mediaUrl || busy} onClick={() => run('Copy', (n) => copyImage(n, exportScale))}>
+          <button
+            disabled={!mediaUrl || busy || playhead !== null}
+            onClick={() => run('Copy', (n) => copyImage(n, exportScale))}
+          >
             Copy
           </button>
-          <button className="primary" disabled={!mediaUrl || busy} onClick={() => run('Export', exportCurrent)}>
+          <button
+            className="primary"
+            disabled={!mediaUrl || busy || playhead !== null}
+            onClick={() => run('Export', exportCurrent)}
+          >
             Export
           </button>
         </header>

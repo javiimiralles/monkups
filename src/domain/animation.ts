@@ -20,6 +20,9 @@ export const ANIMATION_PRESETS: { id: AnimationPreset; label: string }[] = [
   { id: 'float', label: 'Float' },
 ]
 
+/** Presets that zoom around the focus point. */
+export const ZOOM_PRESETS: AnimationPreset[] = ['zoom-in', 'zoom-out', 'pop']
+
 /** Animated offset applied on top of the static design; tx/ty are percent of the device box, angles in degrees. */
 export type Pose = { scale: number; tx: number; ty: number; rx: number; ry: number; rz: number }
 

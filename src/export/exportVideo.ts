@@ -62,22 +62,28 @@ async function encodeVideo(node: HTMLElement, format: 'mp4' | 'webm', duration: 
     target: new BufferTarget(),
   })
   let source: CanvasSource | null = null
-  await renderFrames(
-    node,
-    frameTimes(duration, fps),
-    size,
-    async (g, i) => {
-      if (!source) {
-        // The source must wrap the canvas being drawn, which exists only once rendering starts.
-        source = new CanvasSource(g.canvas, { codec, bitrate: new Quality('high') })
-        output.addVideoTrack(source, { frameRate: fps })
-        await output.start()
-      }
-      await source.add(i / fps, 1 / fps)
-    },
-    onProgress,
-  )
-  await output.finalize()
+  try {
+    await renderFrames(
+      node,
+      frameTimes(duration, fps),
+      size,
+      async (g, i) => {
+        if (!source) {
+          // The source must wrap the canvas being drawn, which exists only once rendering starts.
+          source = new CanvasSource(g.canvas, { codec, quality: new Quality('high') })
+          output.addVideoTrack(source, { frameRate: fps })
+          await output.start()
+        }
+        await source.add(i / fps, 1 / fps)
+      },
+      onProgress,
+    )
+    await output.finalize()
+  } catch (err) {
+    // Release the encoder before reporting the failure.
+    await output.cancel()
+    throw err
+  }
   return new Blob([output.target.buffer!], { type: format === 'mp4' ? 'video/mp4' : 'video/webm' })
 }
 

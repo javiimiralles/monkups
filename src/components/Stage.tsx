@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useRef, useState } from 'react'
 import { deviceAspect, fitBox, getDevice } from '../domain/devices'
 import { backgroundCss, frameSize, sceneLayer, shadowCss } from '../domain/scene'
-import { IDENTITY, poseAt, poseCss } from '../domain/animation'
+import { IDENTITY, ZOOM_PRESETS, poseAt, poseCss } from '../domain/animation'
 import { stylePad } from '../domain/styles'
 import { useEditor } from '../state/editorStore'
 import { DeviceFrame } from './DeviceFrame'
@@ -27,6 +27,8 @@ export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
   } = useEditor()
   // The animation pose adds to the static design rotation; with no playhead the design is shown as-is.
   const pose = playhead === null ? IDENTITY : poseAt(animation.preset, playhead)
+  // The focus only pivots zoom presets; otherwise the static rotation keeps its centered pivot.
+  const zoomed = ZOOM_PRESETS.includes(animation.preset)
   const transform = poseCss({ ...pose, rx: pose.rx + rotation.x, ry: pose.ry + rotation.y, rz: pose.rz + rotation.z })
   const { width, height } = frameSize(ratio)
   const areaRef = useRef<HTMLDivElement>(null)
@@ -84,7 +86,9 @@ export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
               }}
             />
             {sceneBack}
-            <div style={{ transform, transformOrigin: `${animation.focus.x}% ${animation.focus.y}%` }}>
+            <div
+              style={{ transform, transformOrigin: zoomed ? `${animation.focus.x}% ${animation.focus.y}%` : undefined }}
+            >
               <DeviceFrame
                 device={device}
                 width={size.width}

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ANIMATION_PRESETS } from '../domain/animation'
+import { ANIMATION_PRESETS, ZOOM_PRESETS } from '../domain/animation'
 import { DEVICE_GROUPS, DEVICES, getDevice } from '../domain/devices'
 import {
   GRADIENT_PRESETS,
@@ -333,15 +333,7 @@ export function Sidebar() {
             <button
               key={a.id}
               className={s.animation.preset === a.id ? 'on' : ''}
-              onClick={() =>
-                s.set({
-                  animation: { ...s.animation, preset: a.id },
-                  // Video formats only make sense while something moves.
-                  ...(a.id === 'none' && ['mp4', 'webm', 'gif'].includes(s.exportFormat)
-                    ? { exportFormat: 'png' }
-                    : {}),
-                })
-              }
+              onClick={() => s.set({ animation: { ...s.animation, preset: a.id } })}
             >
               {a.label}
             </button>
@@ -360,7 +352,7 @@ export function Sidebar() {
             />
           </label>
         )}
-        {['zoom-in', 'zoom-out', 'pop'].includes(s.animation.preset) &&
+        {ZOOM_PRESETS.includes(s.animation.preset) &&
           (['x', 'y'] as const).map((axis) => (
             <label key={axis}>
               Focus {axis.toUpperCase()} {s.animation.focus[axis]}%

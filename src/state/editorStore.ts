@@ -27,7 +27,14 @@ const revokeBlob = (url: string | null | undefined) => {
   if (url?.startsWith('blob:')) URL.revokeObjectURL(url)
 }
 
-export const useEditor = create<EditorState>((setState, get) => {
+export const useEditor = create<EditorState>((rawSet, get) => {
+  // Video formats only make sense while something moves; every update goes through here to keep that rule.
+  const setState = (patch: Partial<EditorState>) => {
+    rawSet(patch)
+    const { animation, exportFormat } = get()
+    if (animation.preset === 'none' && isVideoFormat(exportFormat)) rawSet({ exportFormat: 'png' })
+  }
+
   const releaseUrls = () => {
     const { mediaUrl, background } = get()
     revokeBlob(mediaUrl)
