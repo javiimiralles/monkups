@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { GEOMETRY, type Device } from '../domain/devices'
+import { stylePad, type FrameStyle } from '../domain/styles'
 
 type Props = {
   device: Device
@@ -8,23 +9,31 @@ type Props = {
   height: number
   radius: number
   shadow: string
+  /** Applies to screenshots and browser windows only; hardware has its own body. */
+  frameStyle: FrameStyle
   children: ReactNode
 }
 
 /** Draws the hardware or browser chrome around `children` (the media or placeholder). */
-export function DeviceFrame({ device, width, height, radius, shadow, children }: Props) {
+export function DeviceFrame({ device, width, height, radius, shadow, frameStyle, children }: Props) {
   const box: CSSProperties = { width, height, fontSize: width / 100 }
   const drop: CSSProperties = shadow === 'none' ? {} : { filter: `drop-shadow(${shadow})` }
   const g = GEOMETRY
+  const pad = stylePad(frameStyle)
+  const styled = (inner: ReactNode) => (
+    <div
+      className={`frame-style ${frameStyle}`}
+      style={{ ...box, padding: `${pad}em`, borderRadius: radius + (pad * width) / 100, boxShadow: shadow }}
+    >
+      {inner}
+    </div>
+  )
 
   switch (device.kind) {
     case 'browser': {
       const dark = device.theme === 'dark'
-      return (
-        <div
-          className={`browser ${device.browser} ${dark ? 'dark' : 'light'}`}
-          style={{ ...box, borderRadius: radius, boxShadow: shadow }}
-        >
+      return styled(
+        <div className={`browser ${device.browser} ${dark ? 'dark' : 'light'}`} style={{ borderRadius: radius }}>
           {device.browser === 'chrome' ? (
             <div className="toolbar-chrome" style={{ height: `${g.toolbar.chrome}em` }}>
               <div className="tabs">
@@ -42,7 +51,7 @@ export function DeviceFrame({ device, width, height, radius, shadow, children }:
             </div>
           )}
           <div className="screen">{children}</div>
-        </div>
+        </div>,
       )
     }
     case 'phone':
@@ -70,10 +79,10 @@ export function DeviceFrame({ device, width, height, radius, shadow, children }:
         </div>
       )
     default:
-      return (
-        <div className="screenshot" style={{ ...box, borderRadius: radius, boxShadow: shadow }}>
+      return styled(
+        <div className="screenshot" style={{ borderRadius: radius }}>
           {children}
-        </div>
+        </div>,
       )
   }
 }

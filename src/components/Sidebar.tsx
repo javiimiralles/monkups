@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { DEVICE_GROUPS, DEVICES, getDevice } from '../domain/devices'
 import { GRADIENT_PRESETS, RADIUS_PRESETS, RATIOS, type RatioId, type ShadowMode } from '../domain/scene'
+import { FRAME_STYLES, type Rotation } from '../domain/styles'
 import { useEditor } from '../state/editorStore'
 
 export function Sidebar() {
@@ -9,6 +10,7 @@ export function Sidebar() {
   const bg = s.background
   const { kind } = getDevice(s.deviceId)
   const hasRadius = kind === 'screenshot' || kind === 'browser'
+  const rotate = (axis: keyof Rotation, value: number) => s.set({ rotation: { ...s.rotation, [axis]: value } })
 
   return (
     <aside className="sidebar">
@@ -52,7 +54,24 @@ export function Sidebar() {
         </select>
       </section>
 
-      {/* Hardware frames have fixed corners; radius only applies to screenshots and browser windows. */}
+      {/* Hardware frames have fixed corners and body; radius and style only apply to screenshots and browser windows. */}
+      {hasRadius && (
+        <section>
+          <h3>Style</h3>
+          <div className="styles">
+            {FRAME_STYLES.map((st) => (
+              <button
+                key={st.id}
+                className={s.frameStyle === st.id ? 'on' : ''}
+                onClick={() => s.set({ frameStyle: st.id })}
+              >
+                {st.label}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
       {hasRadius && (
         <section>
           <h3>Border</h3>
@@ -75,6 +94,23 @@ export function Sidebar() {
           </label>
         </section>
       )}
+
+      <section>
+        <h3>Rotation</h3>
+        {(['x', 'y', 'z'] as const).map((axis) => (
+          <label key={axis}>
+            {axis.toUpperCase()} {s.rotation[axis]}°
+            <input
+              type="range"
+              min={axis === 'z' ? -180 : -60}
+              max={axis === 'z' ? 180 : 60}
+              value={s.rotation[axis]}
+              onChange={(e) => rotate(axis, +e.target.value)}
+            />
+          </label>
+        ))}
+        <button onClick={() => s.set({ rotation: { x: 0, y: 0, z: 0 } })}>Reset rotation</button>
+      </section>
 
       <section>
         <h3>Shadow</h3>

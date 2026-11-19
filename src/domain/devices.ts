@@ -50,13 +50,19 @@ export function getDevice(id: string): Device {
   return DEVICES.find((d) => d.id === id) ?? DEVICES[0]
 }
 
-/** Width / height of the whole device, frame included. */
-export function deviceAspect(device: Device, mediaAspect: number): number {
+/**
+ * Width / height of the whole device, frame included.
+ * `stylePad` (em) is the frame style drawn around screenshots and browser windows.
+ */
+export function deviceAspect(device: Device, mediaAspect: number, stylePad = 0): number {
   const screenAspect = device.screen ? device.screen[0] / device.screen[1] : mediaAspect
   const g = GEOMETRY
+  const inner = 100 - 2 * stylePad
   switch (device.kind) {
+    case 'screenshot':
+      return 100 / (inner / mediaAspect + 2 * stylePad)
     case 'browser':
-      return 100 / (100 / mediaAspect + g.toolbar[device.browser ?? 'safari'])
+      return 100 / (inner / mediaAspect + g.toolbar[device.browser ?? 'safari'] + 2 * stylePad)
     case 'phone': {
       const screenWidth = 100 - 2 * g.phoneBezel
       return 100 / (screenWidth / screenAspect + 2 * g.phoneBezel)
@@ -69,8 +75,6 @@ export function deviceAspect(device: Device, mediaAspect: number): number {
       const screenWidth = g.laptopLidWidth - 2 * g.laptopBezel
       return 100 / (screenWidth / screenAspect + 2 * g.laptopBezel + g.laptopBase)
     }
-    default:
-      return mediaAspect
   }
 }
 

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { GRADIENT_PRESETS, type Background, type RatioId, type ShadowMode } from '../domain/scene'
+import type { FrameStyle, Rotation } from '../domain/styles'
 
 export type ExportFormat = 'png' | 'jpeg'
 
@@ -9,6 +10,8 @@ type EditorState = {
   deviceId: string
   ratio: RatioId
   radius: number
+  frameStyle: FrameStyle
+  rotation: Rotation
   shadow: { mode: ShadowMode; opacity: number }
   background: Background
   exportFormat: ExportFormat
@@ -25,6 +28,8 @@ export const useEditor = create<EditorState>((setState, get) => ({
   deviceId: 'screenshot',
   ratio: '4:3',
   radius: 20,
+  frameStyle: 'default',
+  rotation: { x: 0, y: 0, z: 0 },
   shadow: { mode: 'spread', opacity: 40 },
   background: { kind: 'gradient', from, to, angle: 135 },
   exportFormat: 'png',

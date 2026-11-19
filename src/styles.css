@@ -101,3 +101,22 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .notch { position: absolute; top: 0; left: 50%; width: 10em; height: 2em; transform: translateX(-50%); border-radius: 0 0 0.8em 0.8em; background: #0d0d0f; }
 .base { width: 100%; border-radius: 0.3em 0.3em 4em 4em; background: linear-gradient(#e2e2e6, #a9a9ae); position: relative; }
 .base::before { content: ''; position: absolute; top: 0; left: 50%; width: 14em; height: 1.1em; transform: translateX(-50%); border-radius: 0 0 1em 1em; background: #b9b9be; }
+
+/* Frame styles wrap screenshots and browser windows; the wrapper padding is the style pad. */
+.frame-style { position: relative; display: flex; }
+.frame-style > .screenshot, .frame-style > .browser { width: 100%; height: 100%; }
+.frame-style::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
+.frame-style.glass-light { background: rgba(255, 255, 255, 0.22); backdrop-filter: blur(1.5em); }
+.frame-style.glass-light::after { border: 0.12em solid rgba(255, 255, 255, 0.55); }
+.frame-style.glass-dark { background: rgba(0, 0, 0, 0.28); backdrop-filter: blur(1.5em); }
+.frame-style.glass-dark::after { border: 0.12em solid rgba(255, 255, 255, 0.16); }
+.frame-style.inset-light { background: #f4f4f6; }
+.frame-style.inset-light::after { box-shadow: inset 0 0.15em 0.5em rgba(0, 0, 0, 0.12); }
+.frame-style.inset-light > * { box-shadow: 0 0 0 0.1em rgba(0, 0, 0, 0.1); }
+.frame-style.inset-dark { background: #1c1c1f; }
+.frame-style.inset-dark::after { box-shadow: inset 0 0.15em 0.5em rgba(0, 0, 0, 0.5); }
+.frame-style.inset-dark > * { box-shadow: 0 0 0 0.1em rgba(255, 255, 255, 0.1); }
+.frame-style.outline > * { outline: 0.35em solid rgba(255, 255, 255, 0.75); outline-offset: 0.7em; }
+.frame-style.border { background: #ffffff; }
+
+.styles { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
