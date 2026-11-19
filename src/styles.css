@@ -56,13 +56,48 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .stage-area { flex: 1; min-height: 0; display: grid; place-items: center; padding: 24px; overflow: hidden; }
 .stage { display: flex; align-items: center; justify-content: center; }
 .checker { background-image: conic-gradient(#2a2a2e 25%, #1f1f22 0 50%, #2a2a2e 0 75%, #1f1f22 0) !important; background-size: 64px 64px !important; }
-.media { max-width: 100%; max-height: 100%; display: block; }
+.media { width: 100%; height: 100%; display: block; object-fit: cover; object-position: top; }
 .placeholder {
   width: 100%;
   height: 100%;
   display: grid;
   place-items: center;
-  background: rgba(0, 0, 0, 0.85);
-  color: var(--muted);
-  font-size: 48px;
+  text-align: center;
+  background: #111114;
+  color: #8b8b95;
+  font-size: 3.5em;
 }
+
+/* Device frames: every size below is in em, where the device is 100em wide. */
+.screenshot, .screen { overflow: hidden; position: relative; }
+.screen { flex: 1; min-height: 0; }
+
+.browser { display: flex; flex-direction: column; overflow: hidden; }
+.browser.light { --chrome-bg: #ececef; --chrome-fg: #ffffff; --chrome-line: #d4d4d8; }
+.browser.dark { --chrome-bg: #2b2b30; --chrome-fg: #3a3a40; --chrome-line: #1c1c20; }
+.lights { display: flex; gap: 0.7em; padding: 0 1.6em; }
+.lights span { width: 1.2em; height: 1.2em; border-radius: 50%; background: #ff5f57; }
+.lights span:nth-child(2) { background: #febc2e; }
+.lights span:nth-child(3) { background: #28c840; }
+.toolbar-safari { display: flex; align-items: center; background: var(--chrome-bg); border-bottom: 0.1em solid var(--chrome-line); }
+.toolbar-safari .address { width: 36%; height: 2.6em; margin: 0 auto; transform: translateX(-4em); border-radius: 0.8em; background: var(--chrome-fg); }
+.toolbar-chrome { display: flex; flex-direction: column; background: var(--chrome-bg); }
+.toolbar-chrome .tabs { flex: 1; display: flex; align-items: flex-end; }
+.toolbar-chrome .lights { align-self: center; }
+.toolbar-chrome .tab { width: 18em; height: 3em; border-radius: 0.8em 0.8em 0 0; background: var(--chrome-fg); }
+.toolbar-chrome .bar { flex: 1; display: flex; align-items: center; padding: 0 1.2em; background: var(--chrome-fg); border-bottom: 0.1em solid var(--chrome-line); }
+.toolbar-chrome .omnibox { width: 100%; height: 2.6em; border-radius: 1.3em; background: var(--chrome-bg); }
+
+.hardware { display: flex; background: #1b1b1d; box-shadow: inset 0 0 0 0.5em #3a3a3e, inset 0 0 0 0.7em #0d0d0f; }
+.hardware.phone { border-radius: 15em; }
+.hardware.phone .screen { border-radius: 11em; }
+.hardware.tablet { border-radius: 8em; }
+.hardware.tablet .screen { border-radius: 3.5em; }
+.island { position: absolute; top: 2.6em; left: 50%; width: 30em; height: 8.5em; transform: translateX(-50%); border-radius: 5em; background: #000; }
+
+.laptop { display: flex; flex-direction: column; align-items: center; }
+.lid { flex: 1; display: flex; background: #0d0d0f; border-radius: 3em 3em 0.6em 0.6em; box-shadow: inset 0 0 0 0.25em #3a3a3e; }
+.lid .screen { border-radius: 0.6em; }
+.notch { position: absolute; top: 0; left: 50%; width: 10em; height: 2em; transform: translateX(-50%); border-radius: 0 0 0.8em 0.8em; background: #0d0d0f; }
+.base { width: 100%; border-radius: 0.3em 0.3em 4em 4em; background: linear-gradient(#e2e2e6, #a9a9ae); position: relative; }
+.base::before { content: ''; position: absolute; top: 0; left: 50%; width: 14em; height: 1.1em; transform: translateX(-50%); border-radius: 0 0 1em 1em; background: #b9b9be; }

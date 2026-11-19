@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { DEVICE_GROUPS, DEVICES, getDevice } from '../domain/devices'
 import { GRADIENT_PRESETS, RADIUS_PRESETS, RATIOS, type RatioId, type ShadowMode } from '../domain/scene'
 import { useEditor } from '../state/editorStore'
 
@@ -6,9 +7,26 @@ export function Sidebar() {
   const s = useEditor()
   const fileRef = useRef<HTMLInputElement>(null)
   const bg = s.background
+  const { kind } = getDevice(s.deviceId)
+  const hasRadius = kind === 'screenshot' || kind === 'browser'
 
   return (
     <aside className="sidebar">
+      <section>
+        <h3>Device</h3>
+        <select value={s.deviceId} onChange={(e) => s.set({ deviceId: e.target.value })}>
+          {DEVICE_GROUPS.map((group) => (
+            <optgroup key={group.kind} label={group.label}>
+              {DEVICES.filter((d) => d.kind === group.kind).map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.label}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+      </section>
+
       <section>
         <h3>Media</h3>
         <button className="drop" onClick={() => fileRef.current?.click()}>
@@ -34,20 +52,29 @@ export function Sidebar() {
         </select>
       </section>
 
-      <section>
-        <h3>Border</h3>
-        <div className="row">
-          {Object.entries(RADIUS_PRESETS).map(([name, value]) => (
-            <button key={name} className={s.radius === value ? 'on' : ''} onClick={() => s.set({ radius: value })}>
-              {name}
-            </button>
-          ))}
-        </div>
-        <label>
-          Radius {s.radius}
-          <input type="range" min={0} max={120} value={s.radius} onChange={(e) => s.set({ radius: +e.target.value })} />
-        </label>
-      </section>
+      {/* Hardware frames have fixed corners; radius only applies to screenshots and browser windows. */}
+      {hasRadius && (
+        <section>
+          <h3>Border</h3>
+          <div className="row">
+            {Object.entries(RADIUS_PRESETS).map(([name, value]) => (
+              <button key={name} className={s.radius === value ? 'on' : ''} onClick={() => s.set({ radius: value })}>
+                {name}
+              </button>
+            ))}
+          </div>
+          <label>
+            Radius {s.radius}
+            <input
+              type="range"
+              min={0}
+              max={120}
+              value={s.radius}
+              onChange={(e) => s.set({ radius: +e.target.value })}
+            />
+          </label>
+        </section>
+      )}
 
       <section>
         <h3>Shadow</h3>
@@ -77,7 +104,10 @@ export function Sidebar() {
       <section>
         <h3>Background</h3>
         <div className="row">
-          <button className={bg.kind === 'transparent' ? 'on' : ''} onClick={() => s.set({ background: { kind: 'transparent' } })}>
+          <button
+            className={bg.kind === 'transparent' ? 'on' : ''}
+            onClick={() => s.set({ background: { kind: 'transparent' } })}
+          >
             Transparent
           </button>
           <button
@@ -89,7 +119,9 @@ export function Sidebar() {
           <button
             className={bg.kind === 'gradient' ? 'on' : ''}
             onClick={() =>
-              s.set({ background: { kind: 'gradient', from: GRADIENT_PRESETS[0][0], to: GRADIENT_PRESETS[0][1], angle: 135 } })
+              s.set({
+                background: { kind: 'gradient', from: GRADIENT_PRESETS[0][0], to: GRADIENT_PRESETS[0][1], angle: 135 },
+              })
             }
           >
             Gradient
@@ -97,7 +129,11 @@ export function Sidebar() {
         </div>
 
         {bg.kind === 'solid' && (
-          <input type="color" value={bg.color} onChange={(e) => s.set({ background: { ...bg, color: e.target.value } })} />
+          <input
+            type="color"
+            value={bg.color}
+            onChange={(e) => s.set({ background: { ...bg, color: e.target.value } })}
+          />
         )}
 
         {bg.kind === 'gradient' && (
@@ -114,8 +150,16 @@ export function Sidebar() {
               ))}
             </div>
             <div className="row">
-              <input type="color" value={bg.from} onChange={(e) => s.set({ background: { ...bg, from: e.target.value } })} />
-              <input type="color" value={bg.to} onChange={(e) => s.set({ background: { ...bg, to: e.target.value } })} />
+              <input
+                type="color"
+                value={bg.from}
+                onChange={(e) => s.set({ background: { ...bg, from: e.target.value } })}
+              />
+              <input
+                type="color"
+                value={bg.to}
+                onChange={(e) => s.set({ background: { ...bg, to: e.target.value } })}
+              />
             </div>
             <label>
               Angle {bg.angle}°

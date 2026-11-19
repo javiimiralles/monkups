@@ -5,6 +5,8 @@ export type ExportFormat = 'png' | 'jpeg'
 
 type EditorState = {
   mediaUrl: string | null
+  mediaSize: { width: number; height: number } | null
+  deviceId: string
   ratio: RatioId
   radius: number
   shadow: { mode: ShadowMode; opacity: number }
@@ -19,6 +21,8 @@ const [from, to] = GRADIENT_PRESETS[0]
 
 export const useEditor = create<EditorState>((setState, get) => ({
   mediaUrl: null,
+  mediaSize: null,
+  deviceId: 'screenshot',
   ratio: '4:3',
   radius: 20,
   shadow: { mode: 'spread', opacity: 40 },
@@ -27,9 +31,16 @@ export const useEditor = create<EditorState>((setState, get) => ({
   exportScale: 1,
   setMedia: (file) => {
     if (!file.type.startsWith('image/')) return
-    const previous = get().mediaUrl
-    if (previous) URL.revokeObjectURL(previous)
-    setState({ mediaUrl: URL.createObjectURL(file) })
+    const url = URL.createObjectURL(file)
+    const img = new Image()
+    // Frames are sized from the media aspect, so only swap media once its dimensions are known.
+    img.onload = () => {
+      const previous = get().mediaUrl
+      if (previous) URL.revokeObjectURL(previous)
+      setState({ mediaUrl: url, mediaSize: { width: img.naturalWidth, height: img.naturalHeight } })
+    }
+    img.onerror = () => URL.revokeObjectURL(url)
+    img.src = url
   },
   set: (patch) => setState(patch),
 }))

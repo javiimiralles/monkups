@@ -1,12 +1,14 @@
 import { forwardRef, useEffect, useRef, useState } from 'react'
+import { deviceAspect, fitBox, getDevice } from '../domain/devices'
 import { backgroundCss, frameSize, shadowCss } from '../domain/scene'
 import { useEditor } from '../state/editorStore'
+import { DeviceFrame } from './DeviceFrame'
 
 const PADDING = 0.08
 
 /** Renders the scene at full export resolution, scaled down to fit the viewport. */
 export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
-  const { mediaUrl, ratio, radius, shadow, background } = useEditor()
+  const { mediaUrl, mediaSize, deviceId, ratio, radius, shadow, background } = useEditor()
   const { width, height } = frameSize(ratio)
   const areaRef = useRef<HTMLDivElement>(null)
   const [fit, setFit] = useState(0.4)
@@ -22,6 +24,14 @@ export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
     return () => observer.disconnect()
   }, [width, height])
 
+  const device = getDevice(deviceId)
+  // CSS padding percentages resolve against the width on every side.
+  const pad = PADDING * width
+  const inner = { width: width - 2 * pad, height: height - 2 * pad }
+  const fallbackAspect = device.kind === 'screenshot' ? inner.width / inner.height : 16 / 10
+  const mediaAspect = mediaSize ? mediaSize.width / mediaSize.height : fallbackAspect
+  const size = fitBox(inner, deviceAspect(device, mediaAspect))
+
   return (
     <div className="stage-area" ref={areaRef}>
       <div style={{ width: width * fit, height: height * fit }}>
@@ -30,20 +40,21 @@ export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
           <div
             ref={stageRef}
             className={background.kind === 'transparent' ? 'stage checker' : 'stage'}
-            style={{ width, height, background: backgroundCss(background), padding: `${PADDING * 100}%` }}
+            style={{ width, height, background: backgroundCss(background) }}
           >
-            {mediaUrl ? (
-              <img
-                src={mediaUrl}
-                alt="Mockup media"
-                className="media"
-                style={{ borderRadius: radius, boxShadow: shadowCss(shadow.mode, shadow.opacity) }}
-              />
-            ) : (
-              <div className="placeholder" style={{ borderRadius: radius }}>
-                Drop, paste or choose an image
-              </div>
-            )}
+            <DeviceFrame
+              device={device}
+              width={size.width}
+              height={size.height}
+              radius={radius}
+              shadow={shadowCss(shadow.mode, shadow.opacity)}
+            >
+              {mediaUrl ? (
+                <img src={mediaUrl} alt="Mockup media" className="media" />
+              ) : (
+                <div className="placeholder">Drop, paste or choose an image</div>
+              )}
+            </DeviceFrame>
           </div>
         </div>
       </div>
