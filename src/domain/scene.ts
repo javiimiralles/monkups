@@ -4,6 +4,7 @@ export type Background =
   | { kind: 'transparent' }
   | { kind: 'solid'; color: string }
   | { kind: 'gradient'; from: string; to: string; angle: number }
+  | { kind: 'image'; url: string; blur: number; credit?: { name: string; link: string } }
 
 export const RATIOS: { id: RatioId; label: string }[] = [
   { id: '4:3', label: 'Default 4:3' },
@@ -47,5 +48,57 @@ export function shadowCss(mode: ShadowMode, opacityPercent: number): string {
 export function backgroundCss(bg: Background): string {
   if (bg.kind === 'solid') return bg.color
   if (bg.kind === 'gradient') return `linear-gradient(${bg.angle}deg, ${bg.from}, ${bg.to})`
+  // JSON string escaping is also valid CSS string escaping.
+  if (bg.kind === 'image') return `center / cover no-repeat url(${JSON.stringify(bg.url)})`
   return 'transparent'
 }
+
+export type SceneKind = 'none' | 'blinds' | 'window' | 'vignette' | 'shapes'
+
+export const SCENES: { id: SceneKind; label: string }[] = [
+  { id: 'none', label: 'None' },
+  { id: 'blinds', label: 'Blinds' },
+  { id: 'window', label: 'Window' },
+  { id: 'vignette', label: 'Vignette' },
+  { id: 'shapes', label: 'Shapes' },
+]
+
+const SHADE = 'rgba(0, 0, 0, 0.6)'
+
+/** Procedural overlay for a scene: shadows fall in front of the device, shapes sit behind it. */
+export function sceneLayer(kind: SceneKind): { background: string; blur: number; front: boolean } | null {
+  switch (kind) {
+    case 'blinds':
+      return {
+        background: `repeating-linear-gradient(115deg, transparent 0 70px, ${SHADE} 70px 140px)`,
+        blur: 16,
+        front: true,
+      }
+    case 'window':
+      return {
+        background: [
+          `linear-gradient(90deg, transparent 46%, ${SHADE} 46% 54%, transparent 54%)`,
+          `linear-gradient(0deg, transparent 46%, ${SHADE} 46% 54%, transparent 54%)`,
+          `linear-gradient(110deg, ${SHADE} 0 18%, transparent 18% 78%, ${SHADE} 78%)`,
+        ].join(', '),
+        blur: 28,
+        front: true,
+      }
+    case 'vignette':
+      return { background: `radial-gradient(ellipse at center, transparent 45%, ${SHADE} 100%)`, blur: 0, front: true }
+    case 'shapes':
+      return {
+        background: [
+          'radial-gradient(circle at 18% 24%, rgba(255, 255, 255, 0.5) 0 11%, transparent 11.3%)',
+          'radial-gradient(circle at 84% 80%, rgba(255, 255, 255, 0.3) 0 15%, transparent 15.3%)',
+          'radial-gradient(circle at 86% 16%, rgba(0, 0, 0, 0.2) 0 6%, transparent 6.3%)',
+        ].join(', '),
+        blur: 2,
+        front: false,
+      }
+    default:
+      return null
+  }
+}
+
+export type WatermarkPosition = 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'

@@ -1,12 +1,24 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { DEVICE_GROUPS, DEVICES, getDevice } from '../domain/devices'
-import { GRADIENT_PRESETS, RADIUS_PRESETS, RATIOS, type RatioId, type ShadowMode } from '../domain/scene'
+import {
+  GRADIENT_PRESETS,
+  RADIUS_PRESETS,
+  RATIOS,
+  SCENES,
+  type RatioId,
+  type ShadowMode,
+  type WatermarkPosition,
+} from '../domain/scene'
 import { FRAME_STYLES, type Rotation } from '../domain/styles'
 import { useEditor } from '../state/editorStore'
+import { UnsplashPicker } from './UnsplashPicker'
 
 export function Sidebar() {
   const s = useEditor()
   const fileRef = useRef<HTMLInputElement>(null)
+  const bgFileRef = useRef<HTMLInputElement>(null)
+  // The Image tab can be open before an image is chosen, so the background keeps its previous value meanwhile.
+  const [imageTab, setImageTab] = useState(s.background.kind === 'image')
   const bg = s.background
   const { kind } = getDevice(s.deviceId)
   const hasRadius = kind === 'screenshot' || kind === 'browser'
@@ -139,32 +151,72 @@ export function Sidebar() {
 
       <section>
         <h3>Background</h3>
-        <div className="row">
-          <button
-            className={bg.kind === 'transparent' ? 'on' : ''}
-            onClick={() => s.set({ background: { kind: 'transparent' } })}
-          >
-            Transparent
-          </button>
-          <button
-            className={bg.kind === 'solid' ? 'on' : ''}
-            onClick={() => s.set({ background: { kind: 'solid', color: '#1e1e1e' } })}
-          >
-            Solid
-          </button>
-          <button
-            className={bg.kind === 'gradient' ? 'on' : ''}
-            onClick={() =>
-              s.set({
-                background: { kind: 'gradient', from: GRADIENT_PRESETS[0][0], to: GRADIENT_PRESETS[0][1], angle: 135 },
-              })
-            }
-          >
-            Gradient
+        <div className="styles">
+          {(
+            [
+              ['Transparent', { kind: 'transparent' }],
+              ['Solid', { kind: 'solid', color: '#1e1e1e' }],
+              ['Gradient', { kind: 'gradient', from: GRADIENT_PRESETS[0][0], to: GRADIENT_PRESETS[0][1], angle: 135 }],
+            ] as const
+          ).map(([label, value]) => (
+            <button
+              key={label}
+              className={!imageTab && bg.kind === value.kind ? 'on' : ''}
+              onClick={() => {
+                setImageTab(false)
+                s.set({ background: { ...value } })
+              }}
+            >
+              {label}
+            </button>
+          ))}
+          <button className={imageTab ? 'on' : ''} onClick={() => setImageTab(true)}>
+            Image
           </button>
         </div>
 
-        {bg.kind === 'solid' && (
+        {imageTab && (
+          <>
+            <button className="drop" style={{ height: 48, marginTop: 8 }} onClick={() => bgFileRef.current?.click()}>
+              Upload background image
+            </button>
+            <input
+              ref={bgFileRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(e) => e.target.files?.[0] && s.setBackgroundImage(e.target.files[0])}
+            />
+            {bg.kind === 'image' && (
+              <>
+                <label>
+                  Blur {bg.blur}
+                  <input
+                    type="range"
+                    min={0}
+                    max={60}
+                    value={bg.blur}
+                    onChange={(e) => s.set({ background: { ...bg, blur: +e.target.value } })}
+                  />
+                </label>
+                {bg.credit && (
+                  <p className="credit">
+                    Photo by{' '}
+                    <a href={bg.credit.link} target="_blank" rel="noreferrer">
+                      {bg.credit.name}
+                    </a>{' '}
+                    on Unsplash
+                  </p>
+                )}
+              </>
+            )}
+            <UnsplashPicker
+              onPick={(p) => s.set({ background: { kind: 'image', url: p.url, blur: 0, credit: p.credit } })}
+            />
+          </>
+        )}
+
+        {!imageTab && bg.kind === 'solid' && (
           <input
             type="color"
             value={bg.color}
@@ -172,7 +224,7 @@ export function Sidebar() {
           />
         )}
 
-        {bg.kind === 'gradient' && (
+        {!imageTab && bg.kind === 'gradient' && (
           <>
             <div className="swatches">
               {GRADIENT_PRESETS.map(([from, to]) => (
@@ -205,6 +257,67 @@ export function Sidebar() {
                 max={360}
                 value={bg.angle}
                 onChange={(e) => s.set({ background: { ...bg, angle: +e.target.value } })}
+              />
+            </label>
+          </>
+        )}
+      </section>
+
+      <section>
+        <h3>Scene</h3>
+        <div className="styles">
+          {SCENES.map((sc) => (
+            <button
+              key={sc.id}
+              className={s.scene.kind === sc.id ? 'on' : ''}
+              onClick={() => s.set({ scene: { ...s.scene, kind: sc.id } })}
+            >
+              {sc.label}
+            </button>
+          ))}
+        </div>
+        {s.scene.kind !== 'none' && (
+          <label>
+            Intensity {s.scene.opacity}
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={s.scene.opacity}
+              onChange={(e) => s.set({ scene: { ...s.scene, opacity: +e.target.value } })}
+            />
+          </label>
+        )}
+      </section>
+
+      <section>
+        <h3>Watermark</h3>
+        <input
+          type="text"
+          placeholder="Watermark text"
+          value={s.watermark.text}
+          onChange={(e) => s.set({ watermark: { ...s.watermark, text: e.target.value } })}
+        />
+        {s.watermark.text && (
+          <>
+            <select
+              style={{ marginTop: 8 }}
+              value={s.watermark.position}
+              onChange={(e) => s.set({ watermark: { ...s.watermark, position: e.target.value as WatermarkPosition } })}
+            >
+              <option value="bottom-right">Bottom right</option>
+              <option value="bottom-left">Bottom left</option>
+              <option value="top-right">Top right</option>
+              <option value="top-left">Top left</option>
+            </select>
+            <label>
+              Opacity {s.watermark.opacity}
+              <input
+                type="range"
+                min={10}
+                max={100}
+                value={s.watermark.opacity}
+                onChange={(e) => s.set({ watermark: { ...s.watermark, opacity: +e.target.value } })}
               />
             </label>
           </>

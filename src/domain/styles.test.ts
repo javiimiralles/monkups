@@ -45,6 +45,8 @@ describe('rotationCss', () => {
   })
 
   it('composes a perspective transform', () => {
-    expect(rotationCss({ x: 10, y: -20, z: 5 })).toBe('perspective(4000px) rotateX(10deg) rotateY(-20deg) rotateZ(5deg)')
+    expect(rotationCss({ x: 10, y: -20, z: 5 })).toBe(
+      'perspective(4000px) rotateX(10deg) rotateY(-20deg) rotateZ(5deg)',
+    )
   })
 })

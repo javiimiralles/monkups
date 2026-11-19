@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useRef, useState } from 'react'
 import { deviceAspect, fitBox, getDevice } from '../domain/devices'
-import { backgroundCss, frameSize, shadowCss } from '../domain/scene'
+import { backgroundCss, frameSize, sceneLayer, shadowCss } from '../domain/scene'
 import { rotationCss, stylePad } from '../domain/styles'
 import { useEditor } from '../state/editorStore'
 import { DeviceFrame } from './DeviceFrame'
@@ -9,7 +9,8 @@ const PADDING = 0.08
 
 /** Renders the scene at full export resolution, scaled down to fit the viewport. */
 export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
-  const { mediaUrl, mediaSize, deviceId, ratio, radius, frameStyle, rotation, shadow, background } = useEditor()
+  const { mediaUrl, mediaSize, deviceId, ratio, radius, frameStyle, rotation, shadow, background, scene, watermark } =
+    useEditor()
   const { width, height } = frameSize(ratio)
   const areaRef = useRef<HTMLDivElement>(null)
   const [fit, setFit] = useState(0.4)
@@ -33,16 +34,39 @@ export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
   const mediaAspect = mediaSize ? mediaSize.width / mediaSize.height : fallbackAspect
   const size = fitBox(inner, deviceAspect(device, mediaAspect, stylePad(frameStyle)))
 
+  const layer = sceneLayer(scene.kind)
+  const sceneEl = layer && (
+    <div
+      className="layer"
+      style={{
+        background: layer.background,
+        filter: layer.blur ? `blur(${layer.blur}px)` : undefined,
+        opacity: scene.opacity / 100,
+      }}
+    />
+  )
+  const sceneBack = layer && !layer.front ? sceneEl : null
+  const sceneFront = layer?.front ? sceneEl : null
+
   return (
     <div className="stage-area" ref={areaRef}>
       <div style={{ width: width * fit, height: height * fit }}>
-        {/* The transform lives on this wrapper so the exported node stays unscaled. */}
-        <div style={{ width, height, transform: `scale(${fit})`, transformOrigin: '0 0' }}>
-          <div
-            ref={stageRef}
-            className={background.kind === 'transparent' ? 'stage checker' : 'stage'}
-            style={{ width, height, background: backgroundCss(background) }}
-          >
+        {/* The transform and the transparency checkerboard live on this wrapper so the exported node stays clean. */}
+        <div
+          className={background.kind === 'transparent' ? 'checker' : undefined}
+          style={{ width, height, transform: `scale(${fit})`, transformOrigin: '0 0' }}
+        >
+          <div ref={stageRef} className="stage" style={{ width, height }}>
+            <div
+              className="layer"
+              style={{
+                background: backgroundCss(background),
+                ...(background.kind === 'image' && background.blur
+                  ? { filter: `blur(${background.blur}px)`, transform: 'scale(1.1)' }
+                  : {}),
+              }}
+            />
+            {sceneBack}
             <div style={{ transform: rotationCss(rotation) }}>
               <DeviceFrame
                 device={device}
@@ -59,6 +83,15 @@ export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
                 )}
               </DeviceFrame>
             </div>
+            {sceneFront}
+            {watermark.text && (
+              <div
+                className={`watermark ${watermark.position}`}
+                style={{ opacity: watermark.opacity / 100, fontSize: width * 0.022 }}
+              >
+                {watermark.text}
+              </div>
+            )}
           </div>
         </div>
       </div>

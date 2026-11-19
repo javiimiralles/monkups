@@ -1,5 +1,12 @@
 import { create } from 'zustand'
-import { GRADIENT_PRESETS, type Background, type RatioId, type ShadowMode } from '../domain/scene'
+import {
+  GRADIENT_PRESETS,
+  type Background,
+  type RatioId,
+  type SceneKind,
+  type ShadowMode,
+  type WatermarkPosition,
+} from '../domain/scene'
 import type { FrameStyle, Rotation } from '../domain/styles'
 
 export type ExportFormat = 'png' | 'jpeg'
@@ -14,10 +21,13 @@ type EditorState = {
   rotation: Rotation
   shadow: { mode: ShadowMode; opacity: number }
   background: Background
+  scene: { kind: SceneKind; opacity: number }
+  watermark: { text: string; position: WatermarkPosition; opacity: number }
   exportFormat: ExportFormat
   exportScale: 1 | 2
   setMedia: (file: File) => void
-  set: (patch: Partial<Omit<EditorState, 'setMedia' | 'set'>>) => void
+  setBackgroundImage: (file: File) => void
+  set: (patch: Partial<Omit<EditorState, 'setMedia' | 'setBackgroundImage' | 'set'>>) => void
 }
 
 const [from, to] = GRADIENT_PRESETS[0]
@@ -32,6 +42,8 @@ export const useEditor = create<EditorState>((setState, get) => ({
   rotation: { x: 0, y: 0, z: 0 },
   shadow: { mode: 'spread', opacity: 40 },
   background: { kind: 'gradient', from, to, angle: 135 },
+  scene: { kind: 'none', opacity: 40 },
+  watermark: { text: '', position: 'bottom-right', opacity: 70 },
   exportFormat: 'png',
   exportScale: 1,
   setMedia: (file) => {
@@ -46,6 +58,12 @@ export const useEditor = create<EditorState>((setState, get) => ({
     }
     img.onerror = () => URL.revokeObjectURL(url)
     img.src = url
+  },
+  setBackgroundImage: (file) => {
+    if (!file.type.startsWith('image/')) return
+    const previous = get().background
+    if (previous.kind === 'image' && previous.url.startsWith('blob:')) URL.revokeObjectURL(previous.url)
+    setState({ background: { kind: 'image', url: URL.createObjectURL(file), blur: 0 } })
   },
   set: (patch) => setState(patch),
 }))
