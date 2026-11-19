@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
+import { Library, confirmDiscard, type LibraryTab } from './components/Library'
 import { Sidebar } from './components/Sidebar'
 import { Stage } from './components/Stage'
 import { copyImage, downloadImage } from './export/exportImage'
 import { useEditor, type ExportFormat } from './state/editorStore'
 
 export function App() {
-  const { mediaUrl, exportFormat, exportScale, setMedia, set } = useEditor()
+  const { mediaUrl, exportFormat, exportScale, project, setMedia, set, newProject } = useEditor()
+  const [library, setLibrary] = useState<LibraryTab | null>(null)
   const stageRef = useRef<HTMLDivElement>(null)
   const [status, setStatus] = useState('')
 
@@ -42,7 +44,12 @@ export function App() {
       <Sidebar />
       <main>
         <header className="toolbar">
-          <span className="status">{status}</span>
+          <button onClick={() => confirmDiscard() && newProject()}>New</button>
+          <button onClick={() => setLibrary('templates')}>Templates</button>
+          <button onClick={() => setLibrary('projects')}>Projects</button>
+          <span className="status">
+            {project && <strong>{project.name}</strong>} {status}
+          </span>
           <select value={exportFormat} onChange={(e) => set({ exportFormat: e.target.value as ExportFormat })}>
             <option value="png">PNG</option>
             <option value="jpeg">JPEG</option>
@@ -64,6 +71,7 @@ export function App() {
         </header>
         <Stage ref={stageRef} />
       </main>
+      {library && <Library tab={library} stageRef={stageRef} onClose={() => setLibrary(null)} />}
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { DEVICE_GROUPS, DEVICES, getDevice } from '../domain/devices'
 import {
   GRADIENT_PRESETS,
@@ -19,6 +19,8 @@ export function Sidebar() {
   const bgFileRef = useRef<HTMLInputElement>(null)
   // The Image tab can be open before an image is chosen, so the background keeps its previous value meanwhile.
   const [imageTab, setImageTab] = useState(s.background.kind === 'image')
+  // Follow background changes made elsewhere (templates, opened projects).
+  useEffect(() => setImageTab(s.background.kind === 'image'), [s.background.kind])
   const bg = s.background
   const { kind } = getDevice(s.deviceId)
   const hasRadius = kind === 'screenshot' || kind === 'browser'

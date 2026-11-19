@@ -1,69 +1,79 @@
 import { create } from 'zustand'
-import {
-  GRADIENT_PRESETS,
-  type Background,
-  type RatioId,
-  type SceneKind,
-  type ShadowMode,
-  type WatermarkPosition,
-} from '../domain/scene'
-import type { FrameStyle, Rotation } from '../domain/styles'
+import { DEFAULT_SETTINGS, type ProjectRecord, type Settings } from '../domain/project'
 
 export type ExportFormat = 'png' | 'jpeg'
 
-type EditorState = {
+type Actions = 'setMedia' | 'setBackgroundImage' | 'openProject' | 'newProject' | 'set'
+
+type EditorState = Settings & {
   mediaUrl: string | null
   mediaSize: { width: number; height: number } | null
-  deviceId: string
-  ratio: RatioId
-  radius: number
-  frameStyle: FrameStyle
-  rotation: Rotation
-  shadow: { mode: ShadowMode; opacity: number }
-  background: Background
-  scene: { kind: SceneKind; opacity: number }
-  watermark: { text: string; position: WatermarkPosition; opacity: number }
+  /** The saved project being edited, if any. */
+  project: { id: string; name: string } | null
   exportFormat: ExportFormat
   exportScale: 1 | 2
   setMedia: (file: File) => void
   setBackgroundImage: (file: File) => void
-  set: (patch: Partial<Omit<EditorState, 'setMedia' | 'setBackgroundImage' | 'set'>>) => void
+  openProject: (record: ProjectRecord) => void
+  newProject: () => void
+  set: (patch: Partial<Omit<EditorState, Actions>>) => void
 }
 
-const [from, to] = GRADIENT_PRESETS[0]
+const revokeBlob = (url: string | null | undefined) => {
+  if (url?.startsWith('blob:')) URL.revokeObjectURL(url)
+}
 
-export const useEditor = create<EditorState>((setState, get) => ({
-  mediaUrl: null,
-  mediaSize: null,
-  deviceId: 'screenshot',
-  ratio: '4:3',
-  radius: 20,
-  frameStyle: 'default',
-  rotation: { x: 0, y: 0, z: 0 },
-  shadow: { mode: 'spread', opacity: 40 },
-  background: { kind: 'gradient', from, to, angle: 135 },
-  scene: { kind: 'none', opacity: 40 },
-  watermark: { text: '', position: 'bottom-right', opacity: 70 },
-  exportFormat: 'png',
-  exportScale: 1,
-  setMedia: (file) => {
-    if (!file.type.startsWith('image/')) return
-    const url = URL.createObjectURL(file)
-    const img = new Image()
-    // Frames are sized from the media aspect, so only swap media once its dimensions are known.
-    img.onload = () => {
-      const previous = get().mediaUrl
-      if (previous) URL.revokeObjectURL(previous)
-      setState({ mediaUrl: url, mediaSize: { width: img.naturalWidth, height: img.naturalHeight } })
-    }
-    img.onerror = () => URL.revokeObjectURL(url)
-    img.src = url
-  },
-  setBackgroundImage: (file) => {
-    if (!file.type.startsWith('image/')) return
-    const previous = get().background
-    if (previous.kind === 'image' && previous.url.startsWith('blob:')) URL.revokeObjectURL(previous.url)
-    setState({ background: { kind: 'image', url: URL.createObjectURL(file), blur: 0 } })
-  },
-  set: (patch) => setState(patch),
-}))
+export const useEditor = create<EditorState>((setState, get) => {
+  const releaseUrls = () => {
+    const { mediaUrl, background } = get()
+    revokeBlob(mediaUrl)
+    if (background.kind === 'image') revokeBlob(background.url)
+  }
+
+  return {
+    ...DEFAULT_SETTINGS,
+    mediaUrl: null,
+    mediaSize: null,
+    project: null,
+    exportFormat: 'png',
+    exportScale: 1,
+    setMedia: (file) => {
+      if (!file.type.startsWith('image/')) return
+      const url = URL.createObjectURL(file)
+      const img = new Image()
+      // Frames are sized from the media aspect, so only swap media once its dimensions are known.
+      img.onload = () => {
+        revokeBlob(get().mediaUrl)
+        setState({ mediaUrl: url, mediaSize: { width: img.naturalWidth, height: img.naturalHeight } })
+      }
+      img.onerror = () => URL.revokeObjectURL(url)
+      img.src = url
+    },
+    setBackgroundImage: (file) => {
+      if (!file.type.startsWith('image/')) return
+      const previous = get().background
+      if (previous.kind === 'image') revokeBlob(previous.url)
+      setState({ background: { kind: 'image', url: URL.createObjectURL(file), blur: 0 } })
+    },
+    openProject: (record) => {
+      releaseUrls()
+      const { settings } = record
+      const background =
+        record.backgroundImage && settings.background.kind === 'image'
+          ? { ...settings.background, url: URL.createObjectURL(record.backgroundImage) }
+          : settings.background
+      setState({
+        ...settings,
+        background,
+        mediaUrl: record.media ? URL.createObjectURL(record.media) : null,
+        mediaSize: record.mediaSize ?? null,
+        project: { id: record.id, name: record.name },
+      })
+    },
+    newProject: () => {
+      releaseUrls()
+      setState({ ...DEFAULT_SETTINGS, mediaUrl: null, mediaSize: null, project: null })
+    },
+    set: (patch) => setState(patch),
+  }
+})

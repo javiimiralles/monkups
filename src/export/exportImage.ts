@@ -21,3 +21,14 @@ export async function copyImage(node: HTMLElement, scale: number) {
   const blob = await domToBlob(node, { scale, ...fullSize(node), type: 'image/png' })
   await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
 }
+
+/** Small JPEG preview for the project list. */
+export function thumbnailBlob(node: HTMLElement): Promise<Blob> {
+  return domToBlob(node, {
+    ...fullSize(node),
+    scale: 360 / node.offsetWidth,
+    type: 'image/jpeg',
+    quality: 0.8,
+    backgroundColor: '#111114',
+  })
+}
