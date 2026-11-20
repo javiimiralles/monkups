@@ -69,6 +69,10 @@ export function monkupsMcp(): Plugin {
     apply: 'serve',
     configureServer(server) {
       const ask = createBrowserLink(server)
+      // MCP clients probe these to discover OAuth; Vite's SPA fallback would answer 200 with index.html,
+      // which makes them attempt a login that does not exist. A 404 says the server needs no auth.
+      for (const path of ['oauth-protected-resource', 'oauth-authorization-server', 'openid-configuration'])
+        server.middlewares.use(`/.well-known/${path}`, (_req, res) => void res.writeHead(404).end())
       server.middlewares.use('/mcp', async (req, res) => {
         // Stateless: a server and transport per request, as the SDK recommends without sessions.
         const mcp = createMcpServer(ask)
