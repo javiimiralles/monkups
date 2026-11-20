@@ -67,6 +67,26 @@ export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
   // The pose wrapper hugs the composition, so the zoom focus is a percentage of what is shown.
   const group = bounds(rects)
 
+  const frame = (i: number) => {
+    const s = screens[i]
+    return (
+      <DeviceFrame
+        device={getDevice(s.deviceId)}
+        width={rects[i].width}
+        height={rects[i].height}
+        radius={radius}
+        shadow={shadowCss(shadow.mode, shadow.opacity)}
+        frameStyle={frameStyle}
+      >
+        {media[s.id] ? (
+          <img src={media[s.id].url} alt={`Screen ${i + 1}`} className="media" />
+        ) : (
+          <div className="placeholder" />
+        )}
+      </DeviceFrame>
+    )
+  }
+
   const layer = sceneLayer(scene.kind)
   const sceneEl = layer && (
     <div
@@ -127,46 +147,46 @@ export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
               }}
             />
             {sceneBack}
-            <div
-              style={{
-                position: 'absolute',
-                left: group.x,
-                top: group.y,
-                width: group.width,
-                height: group.height,
-                transform: poseCss(pose),
-                transformOrigin: focus,
-              }}
-            >
-              {screens.map((s, i) => (
-                <div
-                  key={s.id}
-                  style={{
-                    position: 'absolute',
-                    left: rects[i].x - group.x,
-                    top: rects[i].y - group.y,
-                    transform: rotationCss(rotation),
-                    // A lone screen keeps pivoting on the zoom focus, so one-device designs render as before.
-                    transformOrigin: single ? focus : undefined,
-                  }}
-                >
-                  <DeviceFrame
-                    device={getDevice(s.deviceId)}
-                    width={rects[i].width}
-                    height={rects[i].height}
-                    radius={radius}
-                    shadow={shadowCss(shadow.mode, shadow.opacity)}
-                    frameStyle={frameStyle}
+            {single ? (
+              // A lone screen keeps the one-device structure: flex-centred, one transform summing pose and rotation.
+              <div
+                style={{
+                  left: rects[0].x - (width - rects[0].width) / 2,
+                  top: rects[0].y - (height - rects[0].height) / 2,
+                  transform: poseCss({ ...pose, rx: pose.rx + rotation.x, ry: pose.ry + rotation.y, rz: pose.rz + rotation.z }),
+                  transformOrigin: focus,
+                }}
+              >
+                {frame(0)}
+              </div>
+            ) : (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: group.x,
+                  top: group.y,
+                  width: group.width,
+                  height: group.height,
+                  transform: poseCss({ ...pose, rx: 0, ry: 0, rz: 0 }),
+                  transformOrigin: focus,
+                }}
+              >
+                {screens.map((s, i) => (
+                  <div
+                    key={s.id}
+                    style={{
+                      position: 'absolute',
+                      left: rects[i].x - group.x,
+                      top: rects[i].y - group.y,
+                      // Nested perspective rotations do not compose, so the pose angles join the static rotation here.
+                      transform: rotationCss({ x: pose.rx + rotation.x, y: pose.ry + rotation.y, z: pose.rz + rotation.z }),
+                    }}
                   >
-                    {media[s.id] ? (
-                      <img src={media[s.id].url} alt={`Screen ${i + 1}`} className="media" />
-                    ) : (
-                      <div className="placeholder" />
-                    )}
-                  </DeviceFrame>
-                </div>
-              ))}
-            </div>
+                    {frame(i)}
+                  </div>
+                ))}
+              </div>
+            )}
             {sceneFront}
             {watermark.text && (
               <div
