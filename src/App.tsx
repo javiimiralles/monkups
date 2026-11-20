@@ -2,16 +2,29 @@ import { useEffect, useRef, useState } from 'react'
 import { Library, confirmDiscard, type LibraryTab } from './components/Library'
 import { Sidebar } from './components/Sidebar'
 import { Stage } from './components/Stage'
+import { frameSize } from './domain/scene'
 import { copyImage, downloadImage } from './export/exportImage'
 import { isVideoFormat, useEditor, type ExportFormat } from './state/editorStore'
 
+const FORMATS: { id: ExportFormat; label: string }[] = [
+  { id: 'png', label: 'PNG' },
+  { id: 'jpeg', label: 'JPEG' },
+  { id: 'mp4', label: 'MP4' },
+  { id: 'webm', label: 'WebM' },
+  { id: 'gif', label: 'GIF' },
+]
+
 export function App() {
-  const { mediaUrl, exportFormat, exportScale, project, animation, playhead, setMedia, set, newProject } = useEditor()
+  const { mediaUrl, exportFormat, exportScale, project, animation, playhead, ratio, setMedia, set, newProject } =
+    useEditor()
   const [busy, setBusy] = useState(false)
   const animated = animation.preset !== 'none'
+  const video = isVideoFormat(exportFormat)
   const [library, setLibrary] = useState<LibraryTab | null>(null)
+  const [dragging, setDragging] = useState(false)
   const stageRef = useRef<HTMLDivElement>(null)
   const [status, setStatus] = useState('')
+  const locked = !mediaUrl || busy || playhead !== null
 
   useEffect(() => {
     const onPaste = (e: ClipboardEvent) => {
@@ -56,63 +69,98 @@ export function App() {
     requestAnimationFrame(tick)
   }
 
+  // The wall label states what Export will produce; GIFs are downscaled by the encoder, so they show no size.
+  const { width, height } = frameSize(ratio)
+  const scale = video ? 1 : exportScale
+  const label = [
+    exportFormat === 'gif' ? null : `${width * scale} × ${height * scale}`,
+    ratio,
+    video ? `${exportFormat.toUpperCase()} · ${animation.duration}s` : `${exportFormat.toUpperCase()} · ${exportScale}x`,
+  ].filter(Boolean)
+
   return (
     <div
-      className="app"
-      onDragOver={(e) => e.preventDefault()}
+      className={`app${dragging ? ' dragging' : ''}`}
+      onDragOver={(e) => {
+        e.preventDefault()
+        setDragging(true)
+      }}
+      onDragLeave={(e) => e.relatedTarget === null && setDragging(false)}
       onDrop={(e) => {
         e.preventDefault()
+        setDragging(false)
         const file = e.dataTransfer.files[0]
         if (file) setMedia(file)
       }}
     >
-      <Sidebar />
-      <main>
-        <header className="toolbar">
-          <button onClick={() => confirmDiscard() && newProject()}>New</button>
-          <button onClick={() => setLibrary('templates')}>Templates</button>
-          <button onClick={() => setLibrary('projects')}>Projects</button>
-          <span className="status">
-            {project && <strong>{project.name}</strong>} {status}
-          </span>
+      <header className="topbar">
+        <span className="brand">
+          Monkups
+          {project && <span className="project">{project.name}</span>}
+        </span>
+        <nav className="topnav">
+          <button className="ghost" onClick={() => confirmDiscard() && newProject()}>
+            New
+          </button>
+          <button className="ghost" onClick={() => setLibrary('templates')}>
+            Templates
+          </button>
+          <button className="ghost" onClick={() => setLibrary('projects')}>
+            Projects
+          </button>
+        </nav>
+        <div className="export" role="group" aria-label="Export">
           {animated && (
             <button disabled={busy || playhead !== null} onClick={preview}>
-              ▶ Preview
+              Preview
             </button>
           )}
-          <select value={exportFormat} onChange={(e) => set({ exportFormat: e.target.value as ExportFormat })}>
-            <option value="png">PNG</option>
-            <option value="jpeg">JPEG</option>
-            {animated && (
-              <>
-                <option value="mp4">MP4</option>
-                <option value="webm">WebM</option>
-                <option value="gif">GIF</option>
-              </>
-            )}
-          </select>
-          {!isVideoFormat(exportFormat) && (
-            <select value={exportScale} onChange={(e) => set({ exportScale: +e.target.value as 1 | 2 })}>
-              <option value={1}>1x</option>
-              <option value={2}>2x</option>
-            </select>
-          )}
-          <button
-            disabled={!mediaUrl || busy || playhead !== null}
-            onClick={() => run('Copy', (n) => copyImage(n, exportScale))}
-          >
+          <div className="seg" role="group" aria-label="Format">
+            {FORMATS.map((f) => {
+              const needsAnimation = isVideoFormat(f.id) && !animated
+              return (
+                <button
+                  key={f.id}
+                  aria-pressed={exportFormat === f.id}
+                  disabled={needsAnimation}
+                  title={needsAnimation ? 'Pick an animation in Extras to export video' : undefined}
+                  onClick={() => set({ exportFormat: f.id })}
+                >
+                  {f.label}
+                </button>
+              )
+            })}
+          </div>
+          <div className="seg" role="group" aria-label="Scale">
+            {([1, 2] as const).map((n) => (
+              <button
+                key={n}
+                aria-pressed={!video && exportScale === n}
+                disabled={video}
+                onClick={() => set({ exportScale: n })}
+              >
+                {n}x
+              </button>
+            ))}
+          </div>
+          <button disabled={locked} onClick={() => run('Copy', (n) => copyImage(n, exportScale))}>
             Copy
           </button>
-          <button
-            className="primary"
-            disabled={!mediaUrl || busy || playhead !== null}
-            onClick={() => run('Export', exportCurrent)}
-          >
+          <button className="primary" disabled={locked} onClick={() => run('Export', exportCurrent)}>
             Export
           </button>
-        </header>
+        </div>
+      </header>
+      <main className="wall">
         <Stage ref={stageRef} />
+        <p className="wall-label" aria-live="polite">
+          {label.map((part) => (
+            <span key={part}>{part}</span>
+          ))}
+          {status && <span className="status">{status}</span>}
+        </p>
       </main>
+      <Sidebar />
       {library && <Library tab={library} stageRef={stageRef} onClose={() => setLibrary(null)} />}
     </div>
   )

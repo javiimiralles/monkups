@@ -47,6 +47,12 @@ export function Library({ tab: initialTab, stageRef, onClose }: Props) {
     refresh()
   }, [])
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
   const save = async (asNew: boolean) => {
     if (!stageRef.current) return
     const id = !asNew && project ? project.id : crypto.randomUUID()
@@ -73,16 +79,18 @@ export function Library({ tab: initialTab, stageRef, onClose }: Props) {
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" role="dialog" aria-label="Library" onClick={(e) => e.stopPropagation()}>
         <header className="modal-head">
-          <div className="row tabs-row">
-            <button className={tab === 'templates' ? 'on' : ''} onClick={() => setTab('templates')}>
+          <div className="seg" role="group" aria-label="Library section">
+            <button aria-pressed={tab === 'templates'} onClick={() => setTab('templates')}>
               Templates
             </button>
-            <button className={tab === 'projects' ? 'on' : ''} onClick={() => setTab('projects')}>
+            <button aria-pressed={tab === 'projects'} onClick={() => setTab('projects')}>
               Projects
             </button>
           </div>
-          <button aria-label="Close" onClick={onClose}>
-            ✕
+          <button className="icon" aria-label="Close" onClick={onClose}>
+            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+              <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
           </button>
         </header>
 
@@ -100,7 +108,7 @@ export function Library({ tab: initialTab, stageRef, onClose }: Props) {
                   }}
                 >
                   <div className="card-preview" style={{ background: backgroundCss(settings.background) }}>
-                    {getDevice(settings.deviceId).label}
+                    <span className="tag">{getDevice(settings.deviceId).label}</span>
                   </div>
                   <span>{t.name}</span>
                 </button>
@@ -109,7 +117,7 @@ export function Library({ tab: initialTab, stageRef, onClose }: Props) {
           </div>
         ) : (
           <>
-            <div className="row save-row">
+            <div className="save-row">
               <input type="text" aria-label="Project name" value={name} onChange={(e) => setName(e.target.value)} />
               <button className="primary" onClick={() => save(false)}>
                 {project ? 'Save' : 'Save project'}
@@ -118,13 +126,13 @@ export function Library({ tab: initialTab, stageRef, onClose }: Props) {
             </div>
             {status && <p className="hint">{status}</p>}
             <div className="cards">
-              {projects.length === 0 && <p className="hint">No saved projects yet.</p>}
+              {projects.length === 0 && <p className="hint">No saved projects yet. Name this design and save it.</p>}
               {projects.map((p) => (
                 <div key={p.id} className={`card ${project?.id === p.id ? 'on' : ''}`}>
                   <Thumb blob={p.thumbnail} />
                   <span>{p.name}</span>
                   <small>{new Date(p.updatedAt).toLocaleString()}</small>
-                  <div className="row">
+                  <div className="card-actions">
                     <button
                       onClick={() => {
                         if (!confirmDiscard()) return
@@ -134,7 +142,9 @@ export function Library({ tab: initialTab, stageRef, onClose }: Props) {
                     >
                       Open
                     </button>
-                    <button onClick={() => remove(p)}>Delete</button>
+                    <button className="danger" onClick={() => remove(p)}>
+                      Delete
+                    </button>
                   </div>
                 </div>
               ))}

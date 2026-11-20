@@ -39,11 +39,11 @@ export function UnsplashPicker({ onPick }: { onPick: (photo: Photo) => void }) {
 
   return (
     <div>
-      <h3 style={{ marginTop: 12 }}>Unsplash</h3>
       {!key ? (
         <>
           <input
             type="password"
+            aria-label="Unsplash access key"
             placeholder="Unsplash access key"
             onKeyDown={(e) => {
               if (e.key !== 'Enter') return
@@ -64,6 +64,7 @@ export function UnsplashPicker({ onPick }: { onPick: (photo: Photo) => void }) {
         <>
           <input
             type="search"
+            aria-label="Search Unsplash photos"
             placeholder="Search photos"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -86,6 +87,7 @@ export function UnsplashPicker({ onPick }: { onPick: (photo: Photo) => void }) {
           </div>
           <p className="hint">
             <a
+              className="link"
               href="#"
               onClick={(e) => {
                 e.preventDefault()

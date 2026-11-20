@@ -1,0 +1,414 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-19T19:20:14.000Z",
+  "title": "Design System: Monkups",
+  "extensions": {
+    "colorMeta": {
+      "wall": {
+        "role": "neutral",
+        "displayName": "Gallery Wall",
+        "tonalRamp": [
+          "#4e5050",
+          "#7b7d7e",
+          "#a8aaac",
+          "#d5d7d9",
+          "#f0f1f3",
+          "#f5f6f7",
+          "#f9fafb",
+          "#fdfdfe"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Panel White",
+        "tonalRamp": [
+          "#545555",
+          "#858686",
+          "#b6b6b6",
+          "#e7e7e7",
+          "#f7f7f7",
+          "#fafafa",
+          "#fcfcfc",
+          "#ffffff"
+        ]
+      },
+      "mat": {
+        "role": "neutral",
+        "displayName": "Mat Board",
+        "tonalRamp": [
+          "#515353",
+          "#818282",
+          "#b1b1b1",
+          "#e0e0e0",
+          "#f9f9f9",
+          "#fbfbfb",
+          "#fdfdfd",
+          "#fefefe"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Gallery Ink",
+        "tonalRamp": [
+          "#0f1112",
+          "#131516",
+          "#161819",
+          "#191b1d",
+          "#494a4c",
+          "#828384",
+          "#bbbbbc",
+          "#e8e8e9"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Label Grey",
+        "tonalRamp": [
+          "#242628",
+          "#35383b",
+          "#464a4d",
+          "#575b60",
+          "#7f8387",
+          "#a7aaad",
+          "#cfd1d2",
+          "#eff0f0"
+        ]
+      },
+      "faint": {
+        "role": "neutral",
+        "displayName": "Faint Grey",
+        "tonalRamp": [
+          "#35383a",
+          "#525658",
+          "#6f7376",
+          "#8c9095",
+          "#aeb2b6",
+          "#c7cacd",
+          "#e1e2e4",
+          "#f5f5f6"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "tonalRamp": [
+          "#484a4b",
+          "#727476",
+          "#9b9ea0",
+          "#c4c7ca",
+          "#e1e3e5",
+          "#eaeced",
+          "#f4f5f5",
+          "#fbfcfc"
+        ]
+      },
+      "hover": {
+        "role": "neutral",
+        "displayName": "Hover Grey",
+        "tonalRamp": [
+          "#505152",
+          "#7e8080",
+          "#acaeae",
+          "#dbdcdd",
+          "#f5f5f6",
+          "#f8f8f9",
+          "#fbfbfc",
+          "#fefefe"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Gallery Green",
+        "tonalRamp": [
+          "#14231f",
+          "#1b332b",
+          "#224337",
+          "#295244",
+          "#567b6e",
+          "#8ba49b",
+          "#c0cec9",
+          "#eaefed"
+        ]
+      },
+      "accent-strong": {
+        "role": "primary",
+        "displayName": "Deep Gallery Green",
+        "tonalRamp": [
+          "#121f1b",
+          "#172b25",
+          "#1c372e",
+          "#214438",
+          "#4f6e64",
+          "#869b94",
+          "#bdc9c5",
+          "#e9edec"
+        ]
+      },
+      "accent-soft": {
+        "role": "primary",
+        "displayName": "Green Wash",
+        "tonalRamp": [
+          "#4c504f",
+          "#787d7b",
+          "#a4aaa7",
+          "#d0d7d4",
+          "#ebf1ee",
+          "#f1f6f3",
+          "#f8faf9",
+          "#fdfdfd"
+        ]
+      },
+      "danger": {
+        "role": "neutral",
+        "displayName": "Oxide Red",
+        "tonalRamp": [
+          "#381815",
+          "#57201c",
+          "#752822",
+          "#943028",
+          "#b55d55",
+          "#cc8f8a",
+          "#e3c2bf",
+          "#f6ebea"
+        ]
+      },
+      "frame": {
+        "role": "neutral",
+        "displayName": "Frame Grey",
+        "tonalRamp": [
+          "#3f4142",
+          "#646667",
+          "#898b8d",
+          "#b8bbbd",
+          "#d9dbdd",
+          "#e5e7e8",
+          "#f1f2f2",
+          "#fafbfb"
+        ]
+      },
+      "placeholder": {
+        "role": "neutral",
+        "displayName": "Placeholder Grey",
+        "tonalRamp": [
+          "#4b4d4e",
+          "#797b7c",
+          "#a7a9aa",
+          "#d4d6d8",
+          "#edeff1",
+          "#f3f4f5",
+          "#f8f9fa",
+          "#fdfdfd"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "The empty-stage prompt only."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "The Monkups wordmark in the top bar."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Every control, tab and body text; the root size."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Hints, the Replace image button, card tags."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Uppercase tracked inspector section headings and the wall label, with tabular figures."
+      }
+    },
+    "shadows": [
+      {
+        "name": "hung-print",
+        "value": "0 28px 48px -16px rgba(27, 29, 31, 0.3)",
+        "purpose": "Drop shadow under the stage mat."
+      },
+      {
+        "name": "floating-dialog",
+        "value": "0 24px 64px -16px rgba(27, 29, 31, 0.4)",
+        "purpose": "Library modal, over a rgba(27, 29, 31, 0.35) backdrop."
+      },
+      {
+        "name": "thumb-lift",
+        "value": "0 0 0 1px #a9aeb3, 0 1px 2px rgba(27, 29, 31, 0.15)",
+        "purpose": "Slider thumbs only."
+      },
+      {
+        "name": "mat-rings",
+        "value": "0 0 0 1px #cfd2d4, 0 0 0 6px #fbfbfa, 0 0 0 7px #cfd2d4, 0 0 0 40px #f8f8f7, 0 0 0 41px #d9dcdf",
+        "purpose": "The bevelled passe-partout drawn around the stage, layered before hung-print."
+      },
+      {
+        "name": "focus-ring",
+        "value": "outline: 2px solid #2c5a4a; outline-offset: 2px",
+        "purpose": "Global :focus-visible treatment."
+      }
+    ],
+    "motion": [
+      {
+        "name": "control",
+        "value": "120ms ease-out",
+        "purpose": "Button background, border and colour changes."
+      },
+      {
+        "name": "card",
+        "value": "160ms ease-out",
+        "purpose": "Library card preview rings on hover and active."
+      },
+      {
+        "name": "mat",
+        "value": "180ms ease-out",
+        "purpose": "Stage mat recolouring while a file is dragged over."
+      },
+      {
+        "name": "reduced",
+        "value": "transition: none",
+        "purpose": "All transitions removed under prefers-reduced-motion: reduce."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "stacked",
+        "value": "860px",
+        "purpose": "At or below, the inspector moves under the wall in a single column."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Default flat control on a 32px row.",
+      "html": "<button class=\"ds-btn\">Copy</button>",
+      "css": ".ds-btn{font:13px/1.45 'Hanken Grotesk Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;color:#1b1d1f;background:#fff;border:1px solid #d9dcdf;border-radius:7px;padding:6px 10px;min-height:32px;cursor:pointer;transition:background-color 120ms ease-out,border-color 120ms ease-out,color 120ms ease-out}.ds-btn:hover{background:#f2f3f4}.ds-btn:focus-visible{outline:2px solid #2c5a4a;outline-offset:2px}"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Export only; the one filled green control.",
+      "html": "<button class=\"ds-btn-primary\">Export</button>",
+      "css": ".ds-btn-primary{font:600 13px/1.45 'Hanken Grotesk Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;color:#fff;background:#2c5a4a;border:1px solid #2c5a4a;border-radius:7px;padding:6px 18px;min-height:32px;cursor:pointer;transition:background-color 120ms ease-out}.ds-btn-primary:hover{background:#234a3d}.ds-btn-primary:focus-visible{outline:2px solid #2c5a4a;outline-offset:2px}"
+    },
+    {
+      "name": "Segmented Control",
+      "kind": "nav",
+      "refersTo": "segment-active",
+      "description": "Mode switch; the active segment is solid ink.",
+      "html": "<div class=\"ds-seg\"><button aria-pressed=\"true\">PNG</button><button>JPEG</button><button>MP4</button></div>",
+      "css": ".ds-seg{display:inline-flex;border:1px solid #d9dcdf;border-radius:7px;overflow:hidden;background:#fff;font:13px/1.45 'Hanken Grotesk Variable', system-ui, -apple-system, 'Segoe UI', sans-serif}.ds-seg button{font:inherit;border:0;background:none;min-height:30px;padding:4px 10px;color:#1b1d1f;cursor:pointer}.ds-seg button+button{border-left:1px solid #d9dcdf}.ds-seg button:hover{background:#f2f3f4}.ds-seg button[aria-pressed=true]{background:#1b1d1f;color:#fff}.ds-seg button:focus-visible{outline:2px solid #2c5a4a;outline-offset:-2px}"
+    },
+    {
+      "name": "Choice Group",
+      "kind": "chip",
+      "refersTo": "choice-active",
+      "description": "Inspector option row; the active choice is green.",
+      "html": "<div class=\"ds-choice\"><button>None</button><button>Solid</button><button aria-pressed=\"true\">Gradient</button><button>Image</button></div>",
+      "css": ".ds-choice{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:268px;font:13px/1.45 'Hanken Grotesk Variable', system-ui, -apple-system, 'Segoe UI', sans-serif}.ds-choice button{font:inherit;color:#1b1d1f;background:#fff;border:1px solid #d9dcdf;border-radius:7px;padding:6px 4px;min-height:32px;cursor:pointer;transition:background-color 120ms ease-out}.ds-choice button:hover{background:#f2f3f4}.ds-choice button[aria-pressed=true]{border-color:#2c5a4a;background:#e6eeea;color:#2c5a4a;font-weight:550;box-shadow:inset 0 0 0 1px #2c5a4a}.ds-choice button:focus-visible{outline:2px solid #2c5a4a;outline-offset:2px}"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Hairline field; focus is the global green outline.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Project name\">",
+      "css": ".ds-input{font:13px/1.45 'Hanken Grotesk Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;color:#1b1d1f;background:#fff;border:1px solid #d9dcdf;border-radius:7px;padding:6px 10px;min-height:32px;width:240px}.ds-input::placeholder{color:#5f6469}.ds-input:focus-visible{outline:2px solid #2c5a4a;outline-offset:2px}"
+    },
+    {
+      "name": "Inspector Tabs",
+      "kind": "nav",
+      "refersTo": "tab-active",
+      "description": "Flat tabs; active is ink with a green underline.",
+      "html": "<div class=\"ds-tabs\" role=\"tablist\"><button role=\"tab\">Frame</button><button role=\"tab\" aria-selected=\"true\">Background</button><button role=\"tab\">Extras</button></div>",
+      "css": ".ds-tabs{display:flex;width:300px;padding:0 8px;border-bottom:1px solid #d9dcdf;background:#fff;font:13px/1.45 'Hanken Grotesk Variable', system-ui, -apple-system, 'Segoe UI', sans-serif}.ds-tabs button{flex:1;font:inherit;border:0;background:none;min-height:44px;color:#5f6469;cursor:pointer}.ds-tabs button:hover{color:#1b1d1f}.ds-tabs button[aria-selected=true]{color:#1b1d1f;font-weight:600;box-shadow:inset 0 -2px 0 #2c5a4a}.ds-tabs button:focus-visible{outline:2px solid #2c5a4a;outline-offset:-2px}"
+    },
+    {
+      "name": "Slider",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Neutral hairline slider with labelled value; green only on focus.",
+      "html": "<label class=\"ds-range\"><span class=\"ds-range-head\"><span>Angle</span><output>135°</output></span><input type=\"range\" min=\"0\" max=\"360\" value=\"135\"></label>",
+      "css": ".ds-range{display:grid;gap:2px;width:268px;font:13px/1.45 'Hanken Grotesk Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;color:#1b1d1f}.ds-range-head{display:flex;justify-content:space-between}.ds-range output{color:#5f6469;font-variant-numeric:tabular-nums}.ds-range input{width:100%;height:20px;margin:0;background:none;appearance:none;cursor:pointer}.ds-range input::-webkit-slider-runnable-track{height:2px;background:#d9dcdf}.ds-range input::-webkit-slider-thumb{appearance:none;width:14px;height:14px;margin-top:-6px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px #a9aeb3,0 1px 2px rgba(27,29,31,.15)}.ds-range input:hover::-webkit-slider-thumb{box-shadow:0 0 0 1px #1b1d1f,0 1px 2px rgba(27,29,31,.15)}.ds-range input:focus-visible{outline:none}.ds-range input:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 2px #2c5a4a,0 0 0 5px #e6eeea}"
+    },
+    {
+      "name": "Section Label",
+      "kind": "custom",
+      "refersTo": "label",
+      "description": "Wall-label style inspector group heading.",
+      "html": "<div class=\"ds-group\"><h3 class=\"ds-label\">Fill</h3><p class=\"ds-hint\">Pick a background.</p></div>",
+      "css": ".ds-group{display:grid;gap:10px;padding:16px;width:300px;background:#fff;border-bottom:1px solid #d9dcdf;font:13px/1.45 'Hanken Grotesk Variable', system-ui, -apple-system, 'Segoe UI', sans-serif}.ds-label{margin:0;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#5f6469}.ds-hint{margin:0;font-size:12px;color:#5f6469}"
+    },
+    {
+      "name": "Stage Mat",
+      "kind": "card",
+      "description": "Signature passe-partout around the stage; recolours green on drag-over.",
+      "html": "<div class=\"ds-wall\"><div class=\"ds-mat\"></div><p class=\"ds-wall-label\"><span>1920 × 1440</span><span>4:3</span><span>PNG · 1x</span></p></div>",
+      "css": ".ds-wall{display:grid;justify-items:center;gap:56px;padding:56px 56px 16px;background:#eceef0;font:13px/1.45 'Hanken Grotesk Variable', system-ui, -apple-system, 'Segoe UI', sans-serif}.ds-mat{width:200px;height:150px;background:#e9ebed;box-shadow:0 0 0 1px #cfd2d4,0 0 0 6px #fbfbfa,0 0 0 7px #cfd2d4,0 0 0 40px #f8f8f7,0 0 0 41px #d9dcdf,0 28px 48px -16px rgba(27,29,31,.3);transition:box-shadow 180ms ease-out}.ds-mat:hover{box-shadow:0 0 0 1px #2c5a4a,0 0 0 6px #e6eeea,0 0 0 7px #2c5a4a,0 0 0 40px #e6eeea,0 0 0 41px #2c5a4a,0 28px 48px -16px rgba(27,29,31,.3)}.ds-wall-label{display:flex;gap:18px;margin:0;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#5f6469;font-variant-numeric:tabular-nums}.ds-wall-label span:first-child{color:#1b1d1f;font-weight:600}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Passe-partout",
+    "overview": "The editor is a gallery wall and the stage is a matted print hung on it. Everything that is not the print is wall, mat, or label: a cool gallery-white field, white panels separated by one-pixel hairlines, and a single wall label under the work that states what will be exported. The interface recedes so the canvas reads first; the product is the picture, not the tool.\n\nDensity is quiet and compact. Controls sit at 13px on a 32px row, inspector groups are separated by hairlines rather than cards, and the chrome is light, flat and achromatic. Colour is spent once: a deep gallery green marks the active choice, keyboard focus and the Export action, and nothing else. The editor deliberately refuses the dark left sidebar of stacked sections that mockup tools usually ship; the inspector is a light, tabbed panel on the right.",
+    "keyCharacteristics": [
+      "Light, cool, achromatic chrome; one reserved green.",
+      "The stage is framed by a bevelled mat drawn entirely with stacked box-shadow rings.",
+      "Hairline separation (1px) instead of cards or fills.",
+      "Small-caps, letter-spaced labels in the manner of a museum wall label, with tabular figures.",
+      "System UI sans throughout; hierarchy by weight and case, not size."
+    ],
+    "rules": [
+      {
+        "name": "The One Reserved Colour Rule",
+        "body": "Gallery Green appears only on the active choice, focus, and Export (plus the drag-over mat). It never decorates, never fills a panel, never colours an idle control. Sliders stay neutral until focused.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ink-for-Segments Rule",
+        "body": "The top-bar segmented controls (format, scale, library tabs) mark the active option in solid Gallery Ink with white text; inspector choices mark it in green. Mode switches are ink; content choices are green.",
+        "section": "colors"
+      },
+      {
+        "name": "The Wall Label Rule",
+        "body": "Uppercase tracking is reserved for labels that name or measure (section headings, dimensions, ratio, format). It is never used for prose, buttons, or decorative lead-ins.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Figures Rule",
+        "body": "Every number the user reads as a value (slider outputs, the wall label) uses tabular figures so rows never shift as values change.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-Chrome Rule",
+        "body": "Interface surfaces never cast shadows. Only the print and the dialog are lifted off the wall.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Mat-Ring Rule",
+        "body": "Frames and mats are drawn with stacked spread-only box-shadow rings (no blur), never with borders or nested wrappers. Library card previews use the same device at small scale.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do spend Gallery Green only on the active choice, focus, Export and the drag-over mat.",
+      "Do separate regions with 1px Hairline (#d9dcdf) borders, not fills or cards.",
+      "Do draw frames and mats with spread-only box-shadow rings and keep artwork corners square.",
+      "Do use 11px uppercase labels with 0.06em tracking and tabular figures for anything that names or measures.",
+      "Do keep controls at 13px on a 32px row with a 7px radius.",
+      "Do disable all transitions under `prefers-reduced-motion: reduce`."
+    ],
+    "donts": [
+      "Don't colour idle controls, slider tracks or panels with the accent.",
+      "Don't put shadows on the top bar, inspector, groups or buttons.",
+      "Don't introduce a display face or large type in the chrome; the largest editor text is the 18px empty-stage prompt.",
+      "Don't use uppercase tracking for prose, buttons or lead-in lines above headings.",
+      "Don't let editor chrome styles reach the export stage; rules below the \"Export stage\" comment in `src/styles.css` render into images and are not part of this system."
+    ]
+  }
+}

@@ -10,6 +10,7 @@ const PADDING = 0.08
 
 /** Renders the scene at full export resolution, scaled down to fit the viewport. */
 export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
+  const fileRef = useRef<HTMLInputElement>(null)
   const {
     mediaUrl,
     mediaSize,
@@ -24,6 +25,7 @@ export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
     watermark,
     animation,
     playhead,
+    setMedia,
   } = useEditor()
   // The animation pose adds to the static design rotation; with no playhead the design is shown as-is.
   const pose = playhead === null ? IDENTITY : poseAt(animation.preset, playhead)
@@ -69,7 +71,28 @@ export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
 
   return (
     <div className="stage-area" ref={areaRef}>
-      <div style={{ width: width * fit, height: height * fit }}>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={(e) => {
+          if (e.target.files?.[0]) setMedia(e.target.files[0])
+          e.target.value = ''
+        }}
+      />
+      {/* The mat and the empty-state prompt sit outside the exported stage node. */}
+      <div className="mat" style={{ width: width * fit, height: height * fit }}>
+        {mediaUrl ? (
+          <button className="replace" onClick={() => fileRef.current?.click()}>
+            Replace image
+          </button>
+        ) : (
+          <button className="empty" onClick={() => fileRef.current?.click()}>
+            <strong>Add a screenshot</strong>
+            <span>Paste with Ctrl+V, drop it here, or click to choose</span>
+          </button>
+        )}
         {/* The transform and the transparency checkerboard live on this wrapper so the exported node stays clean. */}
         <div
           className={background.kind === 'transparent' ? 'checker' : undefined}
@@ -100,7 +123,7 @@ export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
                 {mediaUrl ? (
                   <img src={mediaUrl} alt="Mockup media" className="media" />
                 ) : (
-                  <div className="placeholder">Drop, paste or choose an image</div>
+                  <div className="placeholder" />
                 )}
               </DeviceFrame>
             </div>
