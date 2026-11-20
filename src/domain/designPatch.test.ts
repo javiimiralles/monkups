@@ -19,6 +19,8 @@ describe('DesignPatchSchema', () => {
     expect(DesignPatchSchema.safeParse({ wallpaper: 'red' }).success).toBe(false)
     expect(DesignPatchSchema.safeParse({ background: { kind: 'solid', color: 'red' } }).success).toBe(false)
     expect(DesignPatchSchema.safeParse({ background: { kind: 'image', url: 'x' } }).success).toBe(false)
+    const twice = { kind: 'text', id: 'title' }
+    expect(DesignPatchSchema.safeParse({ overlays: [twice, twice] }).success).toBe(false)
   })
 })
 

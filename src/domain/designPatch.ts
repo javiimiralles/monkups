@@ -66,10 +66,10 @@ export const DesignPatchSchema = z.strictObject({
     .describe('All screens in order; screen i keeps the image of current screen i, extra current screens are removed'),
   layout: z.strictObject({ preset: ids(LAYOUT_PRESETS), gap: z.number().min(0).max(20) }).optional(),
   ratio: ids(RATIOS).optional(),
-  radius: z.number().min(0).max(60).optional().describe('Corner radius of screenshot and browser frames'),
+  radius: z.number().min(0).max(120).optional().describe('Corner radius of screenshot and browser frames'),
   frameStyle: ids(FRAME_STYLES).optional(),
   rotation: z
-    .strictObject({ x: z.number().min(-45).max(45), y: z.number().min(-45).max(45), z: z.number().min(-45).max(45) })
+    .strictObject({ x: z.number().min(-60).max(60), y: z.number().min(-60).max(60), z: z.number().min(-180).max(180) })
     .optional()
     .describe('3D tilt of the flat frames, in degrees'),
   shadow: z.strictObject({ mode: z.enum(['none', 'spread', 'hug']), opacity: percent }).optional(),
@@ -94,6 +94,10 @@ export const DesignPatchSchema = z.strictObject({
   overlays: z
     .array(overlay)
     .max(20)
+    .refine((list) => {
+      const ids = list.flatMap((o) => (o.id ? [o.id] : []))
+      return new Set(ids).size === ids.length
+    }, 'Each overlay id may appear once')
     .optional()
     .describe('All text and button overlays, bottom to top; listed ids are updated, missing ones removed. Logos are kept'),
 })
