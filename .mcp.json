@@ -1,0 +1,5 @@
+{
+  "mcpServers": {
+    "monkups": { "type": "http", "url": "http://localhost:5173/mcp" }
+  }
+}

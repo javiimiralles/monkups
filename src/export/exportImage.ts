@@ -1,4 +1,4 @@
-import { domToBlob } from 'modern-screenshot'
+import { domToBlob, domToPng } from 'modern-screenshot'
 import { DISPLAY_RATIO, withCapture } from './captureHooks'
 
 // The stage is shown through a CSS scale transform; offset sizes ignore it, so the export keeps full resolution.
@@ -34,6 +34,13 @@ export async function copyImage(node: HTMLElement, scale: number) {
   // The async clipboard only accepts PNG images.
   const blob = await withCapture(scale, () => domToBlob(node, { scale, ...fullSize(node), type: 'image/png' }))
   await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+}
+
+/** PNG of the stage at most `width` pixels wide, as base64, for an assistant to look at. */
+export async function previewPng(node: HTMLElement, width = 1024): Promise<string> {
+  const scale = Math.min(1, width / node.offsetWidth)
+  const url = await withCapture(DISPLAY_RATIO, () => domToPng(node, { scale, ...fullSize(node) }))
+  return url.slice(url.indexOf(',') + 1)
 }
 
 /** Small JPEG preview for the project list. */
