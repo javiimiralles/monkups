@@ -133,6 +133,7 @@ export function App() {
     >
       <header className="topbar">
         <span className="brand">
+          <img className="brand-icon" src="/favicon.svg" alt="" />
           Monkups
           {project && <span className="project">{project.name}</span>}
         </span>

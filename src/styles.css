@@ -98,6 +98,7 @@ input[type='text'], input[type='search'], input[type='password'] { width: 100%; 
 /* Top bar */
 .topbar { grid-area: top; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
 .brand { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; display: flex; align-items: baseline; gap: 8px; white-space: nowrap; }
+.brand-icon { width: 20px; height: 20px; align-self: center; }
 .project { font-weight: 400; color: var(--muted); }
 .project::before { content: '/'; margin-right: 8px; color: var(--faint); }
 .topnav { display: flex; gap: 2px; }
