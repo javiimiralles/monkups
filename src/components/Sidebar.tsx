@@ -11,7 +11,8 @@ import {
   type WatermarkPosition,
 } from '../domain/scene'
 import { FRAME_STYLES, type Rotation } from '../domain/styles'
-import { useEditor } from '../state/editorStore'
+import { MAX_SCREENS, useEditor } from '../state/editorStore'
+import { LAYOUT_PRESETS } from '../domain/layout'
 import {
   DevicePreview,
   FillPreview,
@@ -148,6 +149,83 @@ export function Sidebar() {
   )
 }
 
+/** The screenshots on the canvas: pick one to edit, add more, replace, remove or reorder. */
+function ScreensGroup() {
+  const s = useEditor()
+  const addRef = useRef<HTMLInputElement>(null)
+  const replaceRef = useRef<HTMLInputElement>(null)
+  const index = s.screens.findIndex((sc) => sc.id === s.selectedScreen)
+  const selected = s.screens[index]
+  const full = s.screens.length >= MAX_SCREENS
+
+  return (
+    <Group title="Screens" note={`${s.screens.length} of ${MAX_SCREENS}`}>
+      <div className="screens" role="group" aria-label="Screens">
+        {s.screens.map((sc, i) => (
+          <button
+            key={sc.id}
+            aria-label={`Screen ${i + 1}`}
+            aria-pressed={sc.id === s.selectedScreen}
+            onClick={() => s.set({ selectedScreen: sc.id })}
+          >
+            {s.media[sc.id] ? <img src={s.media[sc.id].url} alt="" /> : 'Empty'}
+          </button>
+        ))}
+      </div>
+      <div className="row-actions">
+        <button disabled={full} title={full ? `Up to ${MAX_SCREENS} screens` : undefined} onClick={() => addRef.current?.click()}>
+          Add
+        </button>
+        <button disabled={!selected} onClick={() => replaceRef.current?.click()}>
+          {selected && s.media[selected.id] ? 'Replace' : 'Choose image'}
+        </button>
+        <button
+          aria-label="Move left"
+          disabled={index <= 0}
+          onClick={() => s.moveScreen(s.selectedScreen, -1)}
+        >
+          ←
+        </button>
+        <button
+          aria-label="Move right"
+          disabled={index < 0 || index >= s.screens.length - 1}
+          onClick={() => s.moveScreen(s.selectedScreen, 1)}
+        >
+          →
+        </button>
+        <button
+          className="danger"
+          disabled={!selected || (s.screens.length === 1 && !s.media[selected.id])}
+          onClick={() => s.removeScreen(s.selectedScreen)}
+        >
+          Remove
+        </button>
+      </div>
+      <input
+        ref={addRef}
+        type="file"
+        accept="image/*"
+        multiple
+        hidden
+        onChange={(e) => {
+          s.addScreens([...(e.target.files ?? [])])
+          e.target.value = ''
+        }}
+      />
+      <input
+        ref={replaceRef}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={(e) => {
+          if (e.target.files?.[0]) s.replaceScreenMedia(s.selectedScreen, e.target.files[0])
+          e.target.value = ''
+        }}
+      />
+    </Group>
+  )
+}
+
 function FramePanel() {
   const s = useEditor()
   const screen = s.screens.find((sc) => sc.id === s.selectedScreen) ?? s.screens[0]
@@ -159,9 +237,14 @@ function FramePanel() {
   const rotate = (axis: keyof Rotation, value: number) => s.set({ rotation: { ...s.rotation, [axis]: value } })
   const rotated = s.rotation.x !== 0 || s.rotation.y !== 0 || s.rotation.z !== 0
 
+  const many = s.screens.length > 1
+  const index = s.screens.indexOf(screen)
+
   return (
     <>
-      <Group title="Device">
+      <ScreensGroup />
+
+      <Group title="Device" note={many ? `Screen ${index + 1}` : undefined}>
         <Choice
           cols={3}
           value={device.kind}
@@ -181,6 +264,49 @@ function FramePanel() {
             ))}
           </select>
         )}
+        {many && (
+          <button
+            className="link"
+            disabled={s.screens.every((sc) => sc.deviceId === screen.deviceId)}
+            onClick={() => s.set({ screens: s.screens.map((sc) => ({ ...sc, deviceId: screen.deviceId })) })}
+          >
+            Apply to all screens
+          </button>
+        )}
+      </Group>
+
+      <Group title="Layout">
+        <Choice
+          value={s.layout.preset}
+          disabled={!many}
+          options={LAYOUT_PRESETS.map((p) => ({ value: p.id, label: p.label }))}
+          onChange={(preset) => s.set({ layout: { ...s.layout, preset } })}
+        />
+        <Range
+          label="Gap"
+          unit="%"
+          disabled={!many || s.layout.preset === 'cascade'}
+          value={s.layout.gap}
+          min={0}
+          max={12}
+          step={0.5}
+          onChange={(gap) => s.set({ layout: { ...s.layout, gap } })}
+        />
+        <Range
+          label={many ? `Size of screen ${index + 1}` : 'Size'}
+          unit="%"
+          value={Math.round(screen.scale * 100)}
+          min={30}
+          max={200}
+          onChange={(v) => s.setScreen(screen.id, { scale: v / 100 })}
+        />
+        <button
+          className="link"
+          disabled={!screen.dx && !screen.dy && screen.scale === 1}
+          onClick={() => s.setScreen(screen.id, { dx: 0, dy: 0, scale: 1 })}
+        >
+          Reset position and size
+        </button>
       </Group>
 
       <Group title="Aspect ratio">

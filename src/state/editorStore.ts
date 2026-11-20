@@ -101,7 +101,9 @@ export const useEditor = create<EditorState>((rawSet, get) => {
       if (!images.length) return 0
       const { screens, media, selectedScreen } = get()
       const selected = screens.find((s) => s.id === selectedScreen)
-      const targets = selected && !media[selected.id] ? [selected.id] : []
+      // The selected empty screen first, then the other empty ones, then new screens.
+      const emptyIds = screens.filter((s) => !media[s.id]).map((s) => s.id)
+      const targets = (selected && !media[selected.id] ? [selected.id, ...emptyIds.filter((id) => id !== selected.id)] : emptyIds).slice(0, images.length)
       const added: ScreenSettings[] = []
       // New screens copy the device of the selected one, so a row of phones stays a row of phones.
       const deviceId = (selected ?? screens[screens.length - 1]).deviceId

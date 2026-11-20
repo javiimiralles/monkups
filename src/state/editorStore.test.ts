@@ -64,6 +64,18 @@ describe('screens', () => {
     expect(state().media[first].size).toEqual({ width: 300, height: 600 })
   })
 
+  it('fills the other empty screens before appending new ones', async () => {
+    state().set({ screens: ['a', 'b', 'c'].map((id) => ({ id, deviceId: 'iphone-16', dx: 0, dy: 0, scale: 1 })) })
+    state().set({ selectedScreen: 'a' })
+    state().addScreens([png()])
+    await flush()
+    state().addScreens([png(), png(), png()])
+    await flush()
+    expect(state().screens.map((s) => s.id).slice(0, 3)).toEqual(['a', 'b', 'c'])
+    expect(state().screens).toHaveLength(4)
+    expect(Object.keys(state().media)).toHaveLength(4)
+  })
+
   it('caps the design at six screens and reports how many files were refused', async () => {
     expect(state().addScreens(Array.from({ length: 8 }, png))).toBe(2)
     await flush()
