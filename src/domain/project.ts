@@ -8,7 +8,7 @@ import {
 } from './scene'
 import type { Animation } from './animation'
 import type { Layout } from './layout'
-import type { Overlay } from './overlays'
+import { newOverlay, type Overlay } from './overlays'
 import type { FrameStyle, Rotation } from './styles'
 
 /** One screenshot slot: its device and its own placement on top of the layout preset. */
@@ -160,6 +160,32 @@ export const TEMPLATES: Template[] = [
     },
   },
   {
+    id: 'cta-left',
+    name: 'CTA Left',
+    settings: {
+      screens: [{ deviceId: 'iphone-17-pro', dx: 22, dy: 0, scale: 1 }],
+      ratio: '16:9',
+      background: gradient('#0b8f8a', '#3fd0b6', 135),
+      overlays: [
+        { ...newOverlay('text'), x: 8, y: 28, width: 46, size: 5.6 },
+        { ...newOverlay('button'), x: 8, y: 62, size: 1.6 },
+      ],
+    },
+  },
+  {
+    id: 'hero-headline',
+    name: 'Hero Headline',
+    settings: {
+      screens: [{ deviceId: 'iphone-17-pro', dx: 0, dy: 30, scale: 1 }],
+      ratio: '4:3',
+      background: gradient('#1d2671', '#c33764', 160),
+      overlays: [
+        { ...newOverlay('text'), x: 10, y: 7, width: 80, size: 5.4, align: 'center' },
+        { ...newOverlay('button'), x: 39, y: 27, size: 1.6 },
+      ],
+    },
+  },
+  {
     id: 'border-pop',
     name: 'Border Pop',
     settings: {
@@ -191,8 +217,9 @@ export function applyTemplate(template: Template, current: ScreenSettings[] = []
   const count = Math.max(devices.length, current.length)
   return {
     ...DEFAULT_SETTINGS,
-    overlays,
     ...rest,
+    // Fresh ids each time, so overlays from two applications of a template never collide.
+    overlays: rest.overlays?.map((o) => ({ ...o, id: crypto.randomUUID() })) ?? overlays,
     screens: Array.from({ length: count }, (_, i) => {
       const d = devices[Math.min(i, devices.length - 1)]
       const screen = newScreen(typeof d === 'string' ? d : d.deviceId, current[i]?.id)

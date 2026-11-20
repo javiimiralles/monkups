@@ -40,6 +40,36 @@ describe('overlayPx', () => {
   })
 })
 
+describe('CTA templates', () => {
+  const ctas = TEMPLATES.filter((t) => t.settings.overlays?.length)
+
+  it('ship a headline and a button with placeholder text next to one phone', () => {
+    expect(ctas.map((t) => t.name)).toEqual(expect.arrayContaining(['CTA Left', 'Hero Headline']))
+    for (const t of ctas) {
+      const settings = applyTemplate(t)
+      expect(settings.overlays.map((o) => o.kind)).toEqual(['text', 'button'])
+      expect(settings.overlays.map((o) => (o.kind === 'logo' ? '' : o.text))).toEqual(['Your headline', 'Download app'])
+      expect(settings.screens).toHaveLength(1)
+      expect(settings.screens[0].deviceId).toMatch(/^iphone/)
+    }
+  })
+
+  it('CTA Left is 16:9 with the phone on the right, and keeps the current screens (and so their media)', () => {
+    const cta = TEMPLATES.find((t) => t.name === 'CTA Left')!
+    const settings = applyTemplate(cta, [{ id: 'mine', deviceId: 'screenshot', dx: 0, dy: 0, scale: 1 }])
+    expect(settings.ratio).toBe('16:9')
+    expect(settings.screens[0].id).toBe('mine')
+    expect(settings.screens[0].dx).toBeGreaterThan(0)
+  })
+
+  it('applying a template twice gives new overlay ids, so copies never share an id', () => {
+    const cta = TEMPLATES.find((t) => t.name === 'CTA Left')!
+    const a = applyTemplate(cta).overlays.map((o) => o.id)
+    const b = applyTemplate(cta).overlays.map((o) => o.id)
+    expect(a.some((id) => b.includes(id))).toBe(false)
+  })
+})
+
 describe('overlays in settings', () => {
   it('defaults to no overlays, so projects saved before overlays open unchanged', () => {
     expect(DEFAULT_SETTINGS.overlays).toEqual([])
@@ -57,6 +87,7 @@ describe('overlays in settings', () => {
     const clean = TEMPLATES.find((t) => t.id === 'clean-gradient')!
     expect(applyTemplate(clean, [], mine).overlays).toBe(mine)
     const withText = { id: 't', name: 'T', settings: { overlays: [newOverlay('button')] } }
-    expect(applyTemplate(withText, [], mine).overlays).toEqual(withText.settings.overlays)
+    const { id, ...button } = withText.settings.overlays[0]
+    expect(applyTemplate(withText, [], mine).overlays).toEqual([{ ...button, id: expect.any(String) }])
   })
 })
