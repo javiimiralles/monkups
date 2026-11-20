@@ -14,8 +14,12 @@ const FORMATS: { id: ExportFormat; label: string }[] = [
   { id: 'gif', label: 'GIF' },
 ]
 
+/** Typing into a field or the text being edited on the stage must not trigger stage shortcuts or paste. */
+const isTyping = (target: EventTarget | null) =>
+  target instanceof HTMLElement && (target.isContentEditable || !!target.closest('input, textarea, select'))
+
 export function App() {
-  const { media, exportFormat, exportScale, project, animation, playhead, ratio, notice, addScreens, set, newProject } =
+  const { media, exportFormat, exportScale, project, animation, playhead, ratio, notice, editing, addScreens, set, newProject } =
     useEditor()
   const [busy, setBusy] = useState(false)
   const animated = animation.preset !== 'none'
@@ -24,13 +28,13 @@ export function App() {
   const [dragging, setDragging] = useState(false)
   const stageRef = useRef<HTMLDivElement>(null)
   const [status, setStatus] = useState('')
-  const locked = !Object.keys(media).length || busy || playhead !== null
+  // While text is edited in place, its caret and focus must never reach an export.
+  const locked = !Object.keys(media).length || busy || playhead !== null || editing !== null
 
   useEffect(() => {
     const onPaste = (e: ClipboardEvent) => {
       // Pasting into a text field (project name, watermark) must not add a screen.
-      const target = e.target as HTMLElement | null
-      if (target && (target.isContentEditable || target.closest('input, textarea'))) return
+      if (isTyping(e.target)) return
       const file = [...(e.clipboardData?.files ?? [])].find((f) => f.type.startsWith('image/'))
       if (!file) return
       const { screens, selection, replaceScreenMedia } = useEditor.getState()
@@ -42,6 +46,33 @@ export function App() {
     window.addEventListener('paste', onPaste)
     return () => window.removeEventListener('paste', onPaste)
   }, [addScreens, media])
+
+  // Shortcuts for the selected overlay: Delete, arrows nudge (Shift: further), Ctrl+D duplicates, Enter edits.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (isTyping(e.target) || document.querySelector('[role="dialog"]')) return
+      const st = useEditor.getState()
+      const overlay = st.selection?.kind === 'overlay' && st.overlays.find((o) => o.id === st.selection!.id)
+      if (!overlay || st.editing) return
+      const step = e.shiftKey ? 5 : 0.5
+      const nudge: Record<string, [number, number]> = {
+        ArrowLeft: [-step, 0],
+        ArrowRight: [step, 0],
+        ArrowUp: [0, -step],
+        ArrowDown: [0, step],
+      }
+      if (e.key === 'Delete' || e.key === 'Backspace') st.removeOverlay(overlay.id)
+      else if (nudge[e.key]) st.setOverlay(overlay.id, { x: overlay.x + nudge[e.key][0], y: overlay.y + nudge[e.key][1] })
+      else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') st.duplicateOverlay(overlay.id)
+      // Enter on a sidebar button clicks it; only Enter on the stage starts editing.
+      else if (e.key === 'Enter' && !(e.target as HTMLElement).closest?.('button:not(.selection-box)'))
+        st.startEditing(overlay.id)
+      else return
+      e.preventDefault()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   const run = async (label: string, job: (node: HTMLElement) => Promise<void>) => {
     if (!stageRef.current) return
@@ -118,7 +149,7 @@ export function App() {
         </nav>
         <div className="export" role="group" aria-label="Export">
           {animated && (
-            <button disabled={busy || playhead !== null} onClick={preview}>
+            <button disabled={busy || playhead !== null || editing !== null} onClick={preview}>
               Preview
             </button>
           )}
