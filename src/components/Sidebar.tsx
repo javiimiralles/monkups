@@ -190,28 +190,34 @@ function ScreensGroup() {
             {s.media[sc.id] ? <img src={s.media[sc.id].url} alt="" /> : 'Empty'}
           </button>
         ))}
+        {!full && (
+          <button className="screen-add" aria-label="Add screens" onClick={() => addRef.current?.click()}>
+            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+              <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </button>
+        )}
       </div>
-      <div className="row-actions">
-        <button disabled={full} title={full ? `Up to ${MAX_SCREENS} screens` : undefined} onClick={() => addRef.current?.click()}>
-          Add
-        </button>
+      <div className="screen-tools">
         <button disabled={!selected} onClick={() => replaceRef.current?.click()}>
           {selected && s.media[selected.id] ? 'Replace' : 'Choose image'}
         </button>
-        <button
-          aria-label="Move left"
-          disabled={index <= 0}
-          onClick={() => s.moveScreen(selectedId, -1)}
-        >
-          ←
-        </button>
-        <button
-          aria-label="Move right"
-          disabled={index < 0 || index >= s.screens.length - 1}
-          onClick={() => s.moveScreen(selectedId, 1)}
-        >
-          →
-        </button>
+        <div className="seg" role="group" aria-label="Reorder">
+          <button aria-label="Move left" disabled={index <= 0} onClick={() => s.moveScreen(selectedId, -1)}>
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+              <path d="M10 3.5 5.5 8l4.5 4.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <button
+            aria-label="Move right"
+            disabled={index < 0 || index >= s.screens.length - 1}
+            onClick={() => s.moveScreen(selectedId, 1)}
+          >
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+              <path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </div>
         <button
           className="danger"
           disabled={!selected || (s.screens.length === 1 && !s.media[selected.id])}

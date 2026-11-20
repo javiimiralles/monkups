@@ -1,4 +1,4 @@
-import { rotationCss } from './styles'
+import { rotationCss } from './styles.ts'
 
 export type AnimationPreset = 'none' | 'zoom-in' | 'zoom-out' | 'pan-down' | 'tilt' | 'pop' | 'float'
 

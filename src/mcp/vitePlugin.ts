@@ -6,8 +6,8 @@
 import { NodeStreamableHTTPServerTransport } from '@modelcontextprotocol/node'
 import { McpServer } from '@modelcontextprotocol/server'
 import type { Plugin, ViteDevServer } from 'vite'
-import { DesignPatchSchema } from '../domain/designPatch'
-import type { BridgeRequest, BridgeResponse, BridgeTool } from './bridge'
+import { DesignPatchSchema } from '../domain/designPatch.ts'
+import type { BridgeRequest, BridgeResponse, BridgeTool } from './bridge.ts'
 
 const TIMEOUT_MS = 10_000
 

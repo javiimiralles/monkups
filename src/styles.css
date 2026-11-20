@@ -146,6 +146,12 @@ input[type='text'], input[type='search'], input[type='password'] { width: 100%; 
 .screens > button { aspect-ratio: 4 / 3; padding: 2px; min-height: 0; overflow: hidden; display: grid; place-items: center; font-size: 11px; color: var(--muted); }
 .screens > button[aria-pressed='true'] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
 .screens img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.screens > .screen-add { border-style: dashed; color: var(--muted); background: none; }
+.screens > .screen-add:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.screen-tools { display: flex; align-items: center; gap: 6px; }
+.screen-tools > .seg { flex: none; }
+.screen-tools > .seg > button { display: grid; place-items: center; padding: 4px 8px; }
+.screen-tools > .danger { margin-left: auto; }
 .row-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .wall-label .notice { color: var(--danger); }
 

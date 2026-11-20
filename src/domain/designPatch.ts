@@ -1,12 +1,12 @@
 import { z } from 'zod'
-import { ANIMATION_PRESETS } from './animation'
-import { DEVICES } from './devices'
-import { LAYOUT_PRESETS } from './layout'
-import { FONTS, newOverlay, type Overlay } from './overlays'
-import { MAX_SCREENS, newScreen, type MediaSize, type Settings } from './project'
-import { RATIOS, SCENES } from './scene'
-import { FRAME_STYLES } from './styles'
-import { ANGLE_PRESETS, DEVICE_COLORS } from '../render3d/angles'
+import { ANIMATION_PRESETS } from './animation.ts'
+import { DEVICES } from './devices.ts'
+import { LAYOUT_PRESETS } from './layout.ts'
+import { FONTS, newOverlay, type Overlay } from './overlays.ts'
+import { MAX_SCREENS, newScreen, type MediaSize, type Settings } from './project.ts'
+import { RATIOS, SCENES } from './scene.ts'
+import { FRAME_STYLES } from './styles.ts'
+import { ANGLE_PRESETS, DEVICE_COLORS } from '../render3d/angles.ts'
 
 const oneOf = <T extends string>(values: readonly T[]) => z.enum(values as [T, ...T[]])
 const ids = <T extends string>(list: readonly { id: T }[]) => oneOf(list.map((x) => x.id))

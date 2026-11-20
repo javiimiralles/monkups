@@ -1,4 +1,4 @@
-import { fitBox } from './devices'
+import { fitBox } from './devices.ts'
 
 export type Rect = { x: number; y: number; width: number; height: number }
 export type LayoutPreset = 'row' | 'cascade' | 'grid'

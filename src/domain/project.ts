@@ -5,12 +5,12 @@ import {
   type SceneKind,
   type ShadowMode,
   type WatermarkPosition,
-} from './scene'
-import type { Animation } from './animation'
-import type { Layout } from './layout'
-import { newOverlay, type Overlay } from './overlays'
-import type { FrameStyle, Rotation } from './styles'
-import type { AnglePreset, DeviceColor } from '../render3d/angles'
+} from './scene.ts'
+import type { Animation } from './animation.ts'
+import type { Layout } from './layout.ts'
+import { newOverlay, type Overlay } from './overlays.ts'
+import type { FrameStyle, Rotation } from './styles.ts'
+import type { AnglePreset, DeviceColor } from '../render3d/angles.ts'
 
 /** One screenshot slot: its device and its own placement on top of the layout preset. */
 export type ScreenSettings = {
