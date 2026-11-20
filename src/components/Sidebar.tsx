@@ -13,6 +13,7 @@ import {
 import { FRAME_STYLES, type Rotation } from '../domain/styles'
 import { MAX_SCREENS, selectedScreenId, useEditor } from '../state/editorStore'
 import { LAYOUT_PRESETS } from '../domain/layout'
+import { ANGLE_PRESETS, DEVICE_COLORS, type AnglePreset, type DeviceColor } from '../render3d/angles'
 import { FONTS, fontFamily, type FontId, type Overlay } from '../domain/overlays'
 import {
   DevicePreview,
@@ -32,6 +33,15 @@ const TABS: [Tab, string][] = [
   ['text', 'Text'],
   ['extras', 'Extras'],
 ]
+
+const ANGLE_LABELS: Record<AnglePreset, string> = {
+  front: 'Front',
+  'three-quarter-left': '3/4 Left',
+  'three-quarter-right': '3/4 Right',
+  'low-hero': 'Low hero',
+  top: 'Top',
+}
+const COLOR_LABELS: Record<DeviceColor, string> = { silver: 'Silver', 'space-black': 'Space Black' }
 
 type Option<T> = { value: T; label: string; title?: string; preview?: ReactNode }
 
@@ -243,6 +253,8 @@ function FramePanel() {
   const models = DEVICES.filter((d) => d.kind === device.kind)
   // Hardware frames have fixed corners and body; radius and style only apply to screenshots and browser windows.
   const hardware = device.kind !== 'screenshot' && device.kind !== 'browser'
+  // A realistic device has its own body, lighting and contact shadow, and the camera angle replaces rotation.
+  const realistic = device.kind === '3d'
   const rotate = (axis: keyof Rotation, value: number) => s.set({ rotation: { ...s.rotation, [axis]: value } })
   const rotated = s.rotation.x !== 0 || s.rotation.y !== 0 || s.rotation.z !== 0
 
@@ -327,70 +339,94 @@ function FramePanel() {
         />
       </Group>
 
-      <Group title="Style" note={hardware ? 'Fixed by the device' : undefined}>
-        <Choice
-          cols={3}
-          disabled={hardware}
-          value={s.frameStyle}
-          options={FRAME_STYLES.map((st) => ({ value: st.id, label: st.label, preview: <StylePreview id={st.id} /> }))}
-          onChange={(frameStyle) => s.set({ frameStyle })}
-        />
-        <Choice
-          disabled={hardware}
-          value={s.radius}
-          options={Object.entries(RADIUS_PRESETS).map(([name, value]) => ({
-            value,
-            label: name,
-            preview: <RadiusPreview radius={value} />,
-          }))}
-          onChange={(radius) => s.set({ radius })}
-        />
-        <Range
-          label="Corner radius"
-          disabled={hardware}
-          value={s.radius}
-          min={0}
-          max={120}
-          onChange={(radius) => s.set({ radius })}
-        />
-      </Group>
+      {realistic && (
+        <>
+          <Group title="Angle" note={many ? `Screen ${index + 1}` : undefined}>
+            <Choice
+              cols={3}
+              value={screen.angle}
+              options={ANGLE_PRESETS.map((a) => ({ value: a, label: ANGLE_LABELS[a] }))}
+              onChange={(angle) => s.setScreen(screen.id, { angle })}
+            />
+          </Group>
+          <Group title="Color">
+            <Choice
+              value={screen.color}
+              options={DEVICE_COLORS.map((c) => ({ value: c, label: COLOR_LABELS[c] }))}
+              onChange={(color) => s.setScreen(screen.id, { color })}
+            />
+          </Group>
+        </>
+      )}
 
-      <Group title="Shadow">
-        <Choice<ShadowMode>
-          value={s.shadow.mode}
-          options={(['none', 'spread', 'hug'] as const).map((mode) => ({
-            value: mode,
-            label: mode[0].toUpperCase() + mode.slice(1),
-            preview: <ShadowPreview mode={mode} />,
-          }))}
-          onChange={(mode) => s.set({ shadow: { ...s.shadow, mode } })}
-        />
-        <Range
-          label="Opacity"
-          disabled={s.shadow.mode === 'none'}
-          value={s.shadow.opacity}
-          min={0}
-          max={100}
-          onChange={(opacity) => s.set({ shadow: { ...s.shadow, opacity } })}
-        />
-      </Group>
+      {!realistic && (
+        <>
+          <Group title="Style" note={hardware ? 'Fixed by the device' : undefined}>
+            <Choice
+              cols={3}
+              disabled={hardware}
+              value={s.frameStyle}
+              options={FRAME_STYLES.map((st) => ({ value: st.id, label: st.label, preview: <StylePreview id={st.id} /> }))}
+              onChange={(frameStyle) => s.set({ frameStyle })}
+            />
+            <Choice
+              disabled={hardware}
+              value={s.radius}
+              options={Object.entries(RADIUS_PRESETS).map(([name, value]) => ({
+                value,
+                label: name,
+                preview: <RadiusPreview radius={value} />,
+              }))}
+              onChange={(radius) => s.set({ radius })}
+            />
+            <Range
+              label="Corner radius"
+              disabled={hardware}
+              value={s.radius}
+              min={0}
+              max={120}
+              onChange={(radius) => s.set({ radius })}
+            />
+          </Group>
 
-      <Group title="Rotation">
-        {(['x', 'y', 'z'] as const).map((axis) => (
-          <Range
-            key={axis}
-            label={`Tilt ${axis.toUpperCase()}`}
-            unit="°"
-            value={s.rotation[axis]}
-            min={axis === 'z' ? -180 : -60}
-            max={axis === 'z' ? 180 : 60}
-            onChange={(v) => rotate(axis, v)}
-          />
-        ))}
-        <button className="link" disabled={!rotated} onClick={() => s.set({ rotation: { x: 0, y: 0, z: 0 } })}>
-          Reset rotation
-        </button>
-      </Group>
+          <Group title="Shadow">
+            <Choice<ShadowMode>
+              value={s.shadow.mode}
+              options={(['none', 'spread', 'hug'] as const).map((mode) => ({
+                value: mode,
+                label: mode[0].toUpperCase() + mode.slice(1),
+                preview: <ShadowPreview mode={mode} />,
+              }))}
+              onChange={(mode) => s.set({ shadow: { ...s.shadow, mode } })}
+            />
+            <Range
+              label="Opacity"
+              disabled={s.shadow.mode === 'none'}
+              value={s.shadow.opacity}
+              min={0}
+              max={100}
+              onChange={(opacity) => s.set({ shadow: { ...s.shadow, opacity } })}
+            />
+          </Group>
+
+          <Group title="Rotation">
+            {(['x', 'y', 'z'] as const).map((axis) => (
+              <Range
+                key={axis}
+                label={`Tilt ${axis.toUpperCase()}`}
+                unit="°"
+                value={s.rotation[axis]}
+                min={axis === 'z' ? -180 : -60}
+                max={axis === 'z' ? 180 : 60}
+                onChange={(v) => rotate(axis, v)}
+              />
+            ))}
+            <button className="link" disabled={!rotated} onClick={() => s.set({ rotation: { x: 0, y: 0, z: 0 } })}>
+              Reset rotation
+            </button>
+          </Group>
+        </>
+      )}
     </>
   )
 }

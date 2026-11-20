@@ -57,11 +57,14 @@ export const ShadowPreview = ({ mode }: { mode: ShadowMode }) => (
   </Mini>
 )
 
-export function DevicePreview({ device }: { device: Device }) {
+export function DevicePreview({ device: picked }: { device: Device }) {
+  // Option tiles never open a WebGL context: realistic devices preview as their flat counterpart, turned slightly.
+  const realistic = picked.kind === '3d'
+  const device = realistic ? getDevice(picked.model === 'laptop' ? 'macbook-pro-14' : 'iphone-17-pro') : picked
   const size = fitBox({ width: VW * 0.8, height: VH * 0.82 }, deviceAspect(device, 16 / 10))
   return (
     <Mini>
-      <span className="thumb-center">
+      <span className="thumb-center" style={realistic ? { transform: 'perspective(600px) rotateY(-24deg)' } : undefined}>
         <DeviceFrame device={device} width={size.width} height={size.height} radius={10} shadow="none" frameStyle="default">
           {MEDIA}
         </DeviceFrame>

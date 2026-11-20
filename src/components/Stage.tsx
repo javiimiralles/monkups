@@ -14,6 +14,7 @@ import { IDENTITY, ZOOM_PRESETS, poseAt, poseCss } from '../domain/animation'
 import { fontFamily, overlayPx, type Overlay } from '../domain/overlays'
 import { rotationCss, stylePad } from '../domain/styles'
 import { MAX_SCREENS, selectedScreenId, useEditor } from '../state/editorStore'
+import { Device3D } from './Device3D'
 import { DeviceFrame } from './DeviceFrame'
 
 /** Renders the scene at full export resolution, scaled down to fit the viewport. */
@@ -74,7 +75,7 @@ export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
     const size = media[s.id]?.size
     // An empty lone screenshot fills the stage, as the one-device editor did; empty screens in a set stay uniform.
     const fallback = device.kind === 'screenshot' && single ? innerAspect : 16 / 10
-    return deviceAspect(device, size ? size.width / size.height : fallback, stylePad(frameStyle))
+    return deviceAspect(device, size ? size.width / size.height : fallback, stylePad(frameStyle), s.angle)
   })
   const rects = layoutScreens(layout.preset, layout.gap, stage, aspects).map((slot, i) =>
     placeScreen(slot, screens[i], stage),
@@ -82,11 +83,30 @@ export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
   // The pose wrapper hugs the composition, so the zoom focus is a percentage of what is shown.
   const group = bounds(rects)
 
+  // Realistic devices take their angle from the 3D camera, so the static rotation leaves them upright.
+  const realistic = screens.map((s) => getDevice(s.deviceId).kind === '3d')
+  const tilt = (i: number) => {
+    const r = realistic[i] ? { x: 0, y: 0, z: 0 } : rotation
+    return { x: pose.rx + r.x, y: pose.ry + r.y, z: pose.rz + r.z }
+  }
+
   const frame = (i: number) => {
     const s = screens[i]
+    const device = getDevice(s.deviceId)
+    if (device.kind === '3d')
+      return (
+        <Device3D
+          model={device.model!}
+          angle={s.angle}
+          color={s.color}
+          src={media[s.id]?.url}
+          width={rects[i].width}
+          height={rects[i].height}
+        />
+      )
     return (
       <DeviceFrame
-        device={getDevice(s.deviceId)}
+        device={device}
         width={rects[i].width}
         height={rects[i].height}
         radius={radius}
@@ -192,7 +212,7 @@ export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
                 style={{
                   left: rects[0].x - (width - rects[0].width) / 2,
                   top: rects[0].y - (height - rects[0].height) / 2,
-                  transform: poseCss({ ...pose, rx: pose.rx + rotation.x, ry: pose.ry + rotation.y, rz: pose.rz + rotation.z }),
+                  transform: poseCss({ ...pose, rx: tilt(0).x, ry: tilt(0).y, rz: tilt(0).z }),
                   transformOrigin: focus,
                 }}
               >
@@ -218,7 +238,7 @@ export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
                       left: rects[i].x - group.x,
                       top: rects[i].y - group.y,
                       // Nested perspective rotations do not compose, so the pose angles join the static rotation here.
-                      transform: rotationCss({ x: pose.rx + rotation.x, y: pose.ry + rotation.y, z: pose.rz + rotation.z }),
+                      transform: rotationCss(tilt(i)),
                     }}
                   >
                     {frame(i)}

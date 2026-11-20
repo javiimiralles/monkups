@@ -1,4 +1,5 @@
 import { domToBlob } from 'modern-screenshot'
+import { DISPLAY_RATIO, withCapture } from './captureHooks'
 
 // The stage is shown through a CSS scale transform; offset sizes ignore it, so the export keeps full resolution.
 const fullSize = (node: HTMLElement) => ({ width: node.offsetWidth, height: node.offsetHeight })
@@ -15,32 +16,35 @@ export function saveBlob(blob: Blob, extension: string) {
 
 export async function downloadImage(node: HTMLElement, format: 'png' | 'jpeg', scale: number) {
   // JPEG has no alpha: flatten a transparent background onto white.
-  const blob =
+  const blob = await withCapture(scale, () =>
     format === 'png'
-      ? await domToBlob(node, { scale, ...fullSize(node), type: 'image/png' })
-      : await domToBlob(node, {
+      ? domToBlob(node, { scale, ...fullSize(node), type: 'image/png' })
+      : domToBlob(node, {
           scale,
           ...fullSize(node),
           type: 'image/jpeg',
           quality: 0.95,
           backgroundColor: '#ffffff',
-        })
+        }),
+  )
   saveBlob(blob, format === 'png' ? 'png' : 'jpg')
 }
 
 export async function copyImage(node: HTMLElement, scale: number) {
   // The async clipboard only accepts PNG images.
-  const blob = await domToBlob(node, { scale, ...fullSize(node), type: 'image/png' })
+  const blob = await withCapture(scale, () => domToBlob(node, { scale, ...fullSize(node), type: 'image/png' }))
   await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
 }
 
 /** Small JPEG preview for the project list. */
 export function thumbnailBlob(node: HTMLElement): Promise<Blob> {
-  return domToBlob(node, {
-    ...fullSize(node),
-    scale: 360 / node.offsetWidth,
-    type: 'image/jpeg',
-    quality: 0.8,
-    backgroundColor: '#111114',
-  })
+  return withCapture(DISPLAY_RATIO, () =>
+    domToBlob(node, {
+      ...fullSize(node),
+      scale: 360 / node.offsetWidth,
+      type: 'image/jpeg',
+      quality: 0.8,
+      backgroundColor: '#111114',
+    }),
+  )
 }
