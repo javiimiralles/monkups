@@ -74,6 +74,6 @@ describe('coverFit', () => {
     const fit = coverFit(0.5, 1)
     expect(fit.repeat[0]).toBe(1)
     expect(fit.repeat[1]).toBeCloseTo(0.5)
-    expect(fit.offset[1]).toBeCloseTo(0.5)
+    expect(fit.offset[1]).toBe(0)
   })
 })

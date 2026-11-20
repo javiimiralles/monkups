@@ -58,13 +58,14 @@ export function cameraPose(model: DeviceModel, angle: AnglePreset): CameraPose {
 /** sRGB hex colours of the device materials. */
 export function deviceColors(color: DeviceColor) {
   return color === 'silver'
-    ? { body: 0xd4d6da, back: 0xdfe1e4, keys: 0x1b1b1d, hinge: 0x8c8f94 }
-    : { body: 0x3a3b3f, back: 0x2e2f33, keys: 0x0d0d0e, hinge: 0x1f2023 }
+    ? { body: 0xc4c7cc, back: 0xd9dbde, keys: 0x0b0b0c, hinge: 0x8c8f94 }
+    : { body: 0x3a3b3f, back: 0x2e2f33, keys: 0x070708, hinge: 0x1f2023 }
 }
 
 /**
  * Texture repeat/offset that fills a screen of `screenAspect` (width / height) with an image of
  * `imageAspect` like CSS `object-fit: cover`; tall images keep their top, wide ones stay centred.
+ * Texture space has v = 0 at the image top (textures are uploaded with `flipY = false`).
  */
 export function coverFit(imageAspect: number, screenAspect: number) {
   if (imageAspect > screenAspect) {
@@ -72,5 +73,5 @@ export function coverFit(imageAspect: number, screenAspect: number) {
     return { repeat: [rx, 1] as const, offset: [(1 - rx) / 2, 0] as const }
   }
   const ry = imageAspect / screenAspect
-  return { repeat: [1, ry] as const, offset: [0, 1 - ry] as const }
+  return { repeat: [1, ry] as const, offset: [0, 0] as const }
 }
