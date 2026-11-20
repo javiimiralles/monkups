@@ -195,6 +195,29 @@ export const TEMPLATES: Template[] = [
     },
   },
   {
+    id: 'laptop-phone-3d',
+    name: 'Laptop + Phone',
+    settings: {
+      // The phone stands in front of the laptop's right corner, at roughly its real size next to it.
+      screens: [
+        { deviceId: 'laptop-3d', dx: 4, dy: 0, scale: 1, angle: 'three-quarter-left' },
+        { deviceId: 'phone-3d', dx: -14, dy: 10, scale: 0.56, angle: 'three-quarter-left' },
+      ],
+      layout: { preset: 'row', gap: 0 },
+      ratio: '16:9',
+      background: gradient('#e0e3ea', '#b9c0cc', 160),
+    },
+  },
+  {
+    id: 'laptop-hero-3d',
+    name: 'Laptop Hero',
+    settings: {
+      screens: [{ deviceId: 'laptop-3d', dx: 0, dy: 0, scale: 1, angle: 'three-quarter-left', color: 'space-black' }],
+      ratio: '16:9',
+      background: gradient('#141e30', '#243b55', 160),
+    },
+  },
+  {
     id: 'border-pop',
     name: 'Border Pop',
     settings: {

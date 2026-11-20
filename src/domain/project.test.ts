@@ -53,6 +53,23 @@ describe('applyTemplate', () => {
 })
 
 describe('TEMPLATES', () => {
+  it('puts a 3D laptop and a 3D phone on one 16:9 canvas', () => {
+    const t = TEMPLATES.find((x) => x.id === 'laptop-phone-3d')!
+    const settings = applyTemplate(t)
+    expect(settings.ratio).toBe('16:9')
+    expect(settings.screens.map((s) => s.deviceId)).toEqual(['laptop-3d', 'phone-3d'])
+  })
+
+  it('gives template screens without an angle the defaults', () => {
+    for (const t of TEMPLATES)
+      for (const s of applyTemplate(t).screens) {
+        expect(s.angle).toBeTruthy()
+        expect(s.color).toBeTruthy()
+      }
+    const hero = applyTemplate(TEMPLATES.find((x) => x.id === 'laptop-hero-3d')!)
+    expect(hero.screens[0]).toMatchObject({ deviceId: 'laptop-3d', angle: 'three-quarter-left' })
+  })
+
   it('has unique ids and only uses known devices', () => {
     const ids = TEMPLATES.map((t) => t.id)
     expect(new Set(ids).size).toBe(ids.length)
