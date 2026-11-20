@@ -1,0 +1,31 @@
+# Multi-screen canvas — up to 6 screenshots, each in its own device, on one stage
+Branch: feat/phase-6-multi-screen (from master) · Delivery: ask-on-risk (forecast ~700 authored lines, so a chain strategy will be asked before the 2nd commit) · Runner: Vitest (`pnpm test`) · Package manager: pnpm only
+
+## Specs
+
+- S1 "Poder subir hasta 6 fotos en el mismo canvas para poder poner varias pantallas de la aplicación. Por ejemplo como en la imagen 1" (image 1: three phone screens of the same app side by side, same frame, same size, evenly spaced).
+- S2 Assumption: each photo is a "screen" = one media inside its own device frame; the 7th upload is refused with a visible message.
+- S3 Assumption: frame look (style, radius, shadow, 3D rotation) is shared by all screens; the device model is per screen (needed later for laptop + phone, see realistic-devices.md).
+- S4 Assumption: screens are placed by a layout preset (Row, Cascade, Grid) and can then be dragged and resized individually.
+
+## Tasks
+
+- [ ] T1 S1-S4 Domain: `Screen` model, `layoutScreens()` presets, legacy migration in `restoreSettings`/templates, unit tests — route: inline — Risk: item 1 (persisted format change) — own commit
+- [ ] T2 S1-S2 Store + persistence: screens array with per-screen media, select/add/replace/remove/reorder, ProjectRecord media per screen, Library save/open — route: inline — Risk: item 1 — own commit
+- [ ] T3 S1, S4 Stage: render N device frames, selection outline + drag outside the exported node, multi-file drop/picker, paste rule — route: inline
+- [ ] T4 S1, S3-S4 Sidebar: "Screens" group (thumbnails, add/replace/remove/reorder), per-screen Device + "Apply to all", "Layout" group (preset, gap, scale); 1-2 multi-screen templates — route: inline
+- [ ] T5 S1-S4 Verification in headless Chrome + independent verifier (item 1) — route: delegated verifier
+
+## Log
+
+- L1 (2026-11-20) "Vamos con la siguiente fase del proyecto. Quiero que crees planes de implementación para las siguientes tareas: - Poder subir hasta 6 fotos en el mismo canvas para poder poner varias pantallas de la aplicación. Por ejemplo como en la imagen 1 [...] - Poder añadir logos o texto para crear diseños con CTAs. Ejemplo en la imagen 2 [...] - Este cambio sería para lo último: poder hacer diseños más realistas con dispositivos (de momento con un portatil y un movil me sirve). Estos son algunos ejemplos: [Image #3] [Image #4]"
+- L2 (2026-11-20) Plan. Current state: one media (`mediaUrl`, `mediaSize`) and one `deviceId` at the top of `Settings` (src/domain/project.ts); `Stage.tsx` renders a single `DeviceFrame` inside one transform wrapper; `ProjectRecord` stores one `media` blob.
+  - Data model (T1): `Settings.deviceId` -> `Settings.screens: ScreenSettings[]` with `{ id, deviceId, dx, dy, scale }` (offsets in % of the stage, scale 0.3-2) and `Settings.layout: { preset: 'row' | 'cascade' | 'grid', gap: number }`. Shared look stays where it is (`radius`, `frameStyle`, `shadow`, `rotation`). Media stays out of `Settings`: the store keeps `media: Record<screenId, { url, size }>`.
+  - `layoutScreens(count, preset, gap, stage, aspects) -> Rect[]` in a new src/domain/layout.ts: pure, unit-tested (1..6 screens stay inside the padded stage, Row slots never overlap, 1 screen == today's single centered box so old designs look the same).
+  - Migration: `restoreSettings` turns a legacy `{ deviceId }` into `screens: [{ deviceId, dx: 0, dy: 0, scale: 1 }]`; `ProjectRecord.media`/`mediaSize` become `screens: { id, media?, mediaSize? }[]`, reading the old fields when present. Templates keep their `deviceId` shorthand, mapped to screen 0 by `applyTemplate`.
+  - Store (T2): `selectedScreen`, `addScreens(files)` (fills the selected empty screen first, then appends until 6, reports how many were refused), `replaceScreenMedia(id, file)`, `removeScreen(id)` (revokes its blob URL), `moveScreen(id, -1|1)`, `setScreen(id, patch)`. `releaseUrls`/`newProject` revoke every screen URL. App `locked` becomes "no screen has media".
+  - Stage (T3): the animation pose moves to one group wrapper around all screens (zoom/pan/tilt keep moving the whole composition); each screen gets its own absolutely positioned wrapper with the static rotation around its own centre and `fitBox` inside its layout rect. Selection outline and drag handles render in a sibling overlay outside `stageRef`, so exports and thumbnails never include them (same rule as the checkerboard fix in phase 3). Drag writes `dx/dy`; the preset is kept as the base.
+  - Input: file picker gets `multiple`; drop accepts several files; Ctrl+V adds to the selected empty screen, otherwise appends, and replaces the selected one when all 6 are used. The paste handler must ignore events from text inputs (needed by text-and-logos.md).
+  - Sidebar (T4): new "Screens" group above "Device"; "Device" edits the selected screen and offers "Apply to all"; "Layout" group with preset, gap and per-screen scale. Templates: add "App Trio" (3 phones, Row, 16:9) as a first multi-screen template.
+  - Invariant to prove in T5: a single-screen design exports pixel-identical to the current master (differential check: same settings + media exported from a scratch copy of master and from the branch, compared by pixel hash). Old projects saved in IndexedDB open unchanged.
+  - Out of scope (not asked): per-screen frame style/shadow, free rotation handles, snapping guides, more than 6 screens.
