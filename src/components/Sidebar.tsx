@@ -11,7 +11,7 @@ import {
   type WatermarkPosition,
 } from '../domain/scene'
 import { FRAME_STYLES, type Rotation } from '../domain/styles'
-import { MAX_SCREENS, useEditor } from '../state/editorStore'
+import { MAX_SCREENS, selectedScreenId, useEditor } from '../state/editorStore'
 import { LAYOUT_PRESETS } from '../domain/layout'
 import {
   DevicePreview,
@@ -154,7 +154,8 @@ function ScreensGroup() {
   const s = useEditor()
   const addRef = useRef<HTMLInputElement>(null)
   const replaceRef = useRef<HTMLInputElement>(null)
-  const index = s.screens.findIndex((sc) => sc.id === s.selectedScreen)
+  const selectedId = selectedScreenId(s.selection) ?? ''
+  const index = s.screens.findIndex((sc) => sc.id === selectedId)
   const selected = s.screens[index]
   const full = s.screens.length >= MAX_SCREENS
 
@@ -165,8 +166,8 @@ function ScreensGroup() {
           <button
             key={sc.id}
             aria-label={`Screen ${i + 1}`}
-            aria-pressed={sc.id === s.selectedScreen}
-            onClick={() => s.set({ selectedScreen: sc.id })}
+            aria-pressed={sc.id === selectedId}
+            onClick={() => s.set({ selection: { kind: 'screen', id: sc.id } })}
           >
             {s.media[sc.id] ? <img src={s.media[sc.id].url} alt="" /> : 'Empty'}
           </button>
@@ -182,21 +183,21 @@ function ScreensGroup() {
         <button
           aria-label="Move left"
           disabled={index <= 0}
-          onClick={() => s.moveScreen(s.selectedScreen, -1)}
+          onClick={() => s.moveScreen(selectedId, -1)}
         >
           ←
         </button>
         <button
           aria-label="Move right"
           disabled={index < 0 || index >= s.screens.length - 1}
-          onClick={() => s.moveScreen(s.selectedScreen, 1)}
+          onClick={() => s.moveScreen(selectedId, 1)}
         >
           →
         </button>
         <button
           className="danger"
           disabled={!selected || (s.screens.length === 1 && !s.media[selected.id])}
-          onClick={() => s.removeScreen(s.selectedScreen)}
+          onClick={() => s.removeScreen(selectedId)}
         >
           Remove
         </button>
@@ -218,7 +219,7 @@ function ScreensGroup() {
         accept="image/*"
         hidden
         onChange={(e) => {
-          if (e.target.files?.[0]) s.replaceScreenMedia(s.selectedScreen, e.target.files[0])
+          if (e.target.files?.[0]) s.replaceScreenMedia(selectedId, e.target.files[0])
           e.target.value = ''
         }}
       />
@@ -228,7 +229,7 @@ function ScreensGroup() {
 
 function FramePanel() {
   const s = useEditor()
-  const screen = s.screens.find((sc) => sc.id === s.selectedScreen) ?? s.screens[0]
+  const screen = s.screens.find((sc) => sc.id === selectedScreenId(s.selection)) ?? s.screens[0]
   const setDevice = (deviceId: string) => s.setScreen(screen.id, { deviceId })
   const device = getDevice(screen.deviceId)
   const models = DEVICES.filter((d) => d.kind === device.kind)

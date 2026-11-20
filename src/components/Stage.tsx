@@ -4,7 +4,7 @@ import { PADDING, layoutScreens, placeScreen, type Rect } from '../domain/layout
 import { backgroundCss, frameSize, sceneLayer, shadowCss } from '../domain/scene'
 import { IDENTITY, ZOOM_PRESETS, poseAt, poseCss } from '../domain/animation'
 import { rotationCss, stylePad } from '../domain/styles'
-import { MAX_SCREENS, useEditor } from '../state/editorStore'
+import { MAX_SCREENS, selectedScreenId, useEditor } from '../state/editorStore'
 import { DeviceFrame } from './DeviceFrame'
 
 /** Renders the scene at full export resolution, scaled down to fit the viewport. */
@@ -13,7 +13,7 @@ export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
   const {
     screens,
     media,
-    selectedScreen,
+    selection,
     layout,
     ratio,
     radius,
@@ -120,7 +120,7 @@ export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
         {hasMedia ? (
           <button
             className="replace"
-            disabled={screens.length >= MAX_SCREENS && !!media[selectedScreen]}
+            disabled={screens.length >= MAX_SCREENS && !!media[selectedScreenId(selection) ?? '']}
             onClick={() => fileRef.current?.click()}
           >
             Add screens
@@ -205,8 +205,8 @@ export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
               id: s.id,
               label: `Screen ${i + 1}`,
               rect: rects[i],
-              selected: s.id === selectedScreen,
-              onSelect: () => set({ selectedScreen: s.id }),
+              selected: s.id === selectedScreenId(selection),
+              onSelect: () => set({ selection: { kind: 'screen', id: s.id } }),
               // A drag moves the screen off its layout slot; the preset stays the base.
               onMove: (ddx, ddy) => setScreen(s.id, { dx: s.dx + (ddx / width) * 100, dy: s.dy + (ddy / height) * 100 }),
             }))}

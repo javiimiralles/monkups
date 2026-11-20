@@ -8,6 +8,7 @@ import {
 } from './scene'
 import type { Animation } from './animation'
 import type { Layout } from './layout'
+import type { Overlay } from './overlays'
 import type { FrameStyle, Rotation } from './styles'
 
 /** One screenshot slot: its device and its own placement on top of the layout preset. */
@@ -46,6 +47,8 @@ export type Settings = {
   scene: { kind: SceneKind; opacity: number }
   watermark: { text: string; position: WatermarkPosition; opacity: number }
   animation: Animation
+  /** Text, buttons and logos, drawn above the screens in list order. */
+  overlays: Overlay[]
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -60,6 +63,7 @@ export const DEFAULT_SETTINGS: Settings = {
   scene: { kind: 'none', opacity: 40 },
   watermark: { text: '', position: 'bottom-right', opacity: 70 },
   animation: { preset: 'none', duration: 4, focus: { x: 50, y: 50 } },
+  overlays: [],
 }
 
 const KEYS = Object.keys(DEFAULT_SETTINGS) as (keyof Settings)[]
@@ -68,11 +72,14 @@ export function pickSettings(state: Settings): Settings {
   return Object.fromEntries(KEYS.map((k) => [k, state[k]])) as Settings
 }
 
-/** `deviceId` is shorthand for one screen; `screens` lists devices of a multi-screen template. */
+/**
+ * `deviceId` is shorthand for one screen; `screens` lists the devices of a multi-screen template,
+ * or a device with its placement. A template without `overlays` keeps the current ones.
+ */
 export type Template = {
   id: string
   name: string
-  settings: Partial<Omit<Settings, 'screens'>> & { deviceId?: string; screens?: string[] }
+  settings: Partial<Omit<Settings, 'screens'>> & { deviceId?: string; screens?: (string | Omit<ScreenSettings, 'id'>)[] }
 }
 
 const gradient = (from: string, to: string, angle = 135): Background => ({ kind: 'gradient', from, to, angle })
@@ -178,14 +185,19 @@ export function restoreSettings(saved: Partial<Settings> & { deviceId?: string }
  * Template settings on top of the defaults. Passing the current screens keeps their ids (and so their media):
  * there are as many screens as the larger of the two, each with the template device and the layout slot.
  */
-export function applyTemplate(template: Template, current: ScreenSettings[] = []): Settings {
+export function applyTemplate(template: Template, current: ScreenSettings[] = [], overlays: Overlay[] = []): Settings {
   const { deviceId, screens, ...rest } = template.settings
   const devices = screens ?? [deviceId ?? DEFAULT_SETTINGS.screens[0].deviceId]
   const count = Math.max(devices.length, current.length)
   return {
     ...DEFAULT_SETTINGS,
+    overlays,
     ...rest,
-    screens: Array.from({ length: count }, (_, i) => newScreen(devices[Math.min(i, devices.length - 1)], current[i]?.id)),
+    screens: Array.from({ length: count }, (_, i) => {
+      const d = devices[Math.min(i, devices.length - 1)]
+      const screen = newScreen(typeof d === 'string' ? d : d.deviceId, current[i]?.id)
+      return typeof d === 'string' ? screen : { ...d, id: screen.id }
+    }),
   }
 }
 
@@ -202,6 +214,8 @@ export type ProjectRecord = {
   mediaSize?: MediaSize
   /** Uploaded background images live as blobs; remote (Unsplash) backgrounds keep their URL in settings. */
   backgroundImage?: Blob
+  /** Logo images by overlay id. */
+  overlayImages?: Record<string, Blob>
   thumbnail?: Blob
 }
 

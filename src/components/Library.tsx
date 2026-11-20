@@ -1,10 +1,10 @@
 import { useEffect, useState, type RefObject } from 'react'
 import { getDevice } from '../domain/devices'
-import { TEMPLATES, applyTemplate, pickSettings, type ProjectRecord } from '../domain/project'
+import { TEMPLATES, applyTemplate, type ProjectRecord } from '../domain/project'
 import { backgroundCss } from '../domain/scene'
 import { thumbnailBlob } from '../export/exportImage'
 import { deleteProject, listProjects, saveProject } from '../services/projectDb'
-import { useEditor } from '../state/editorStore'
+import { toRecord, useEditor } from '../state/editorStore'
 
 export type LibraryTab = 'templates' | 'projects'
 
@@ -14,30 +14,13 @@ type Props = { tab: LibraryTab; stageRef: RefObject<HTMLDivElement | null>; onCl
 export const confirmDiscard = () =>
   !Object.keys(useEditor.getState().media).length || window.confirm('Discard the current design? Unsaved changes will be lost.')
 
-const blobOf = (url: string) => fetch(url).then((r) => r.blob())
-
 async function snapshot(node: HTMLElement, id: string, name: string): Promise<ProjectRecord> {
-  const st = useEditor.getState()
-  const bg = st.background
-  return {
-    id,
-    name,
-    updatedAt: Date.now(),
-    settings: pickSettings(st),
-    screens: await Promise.all(
-      st.screens.map(async ({ id }) => {
-        const m = st.media[id]
-        return m ? { id, media: await blobOf(m.url), mediaSize: m.size } : { id }
-      }),
-    ),
-    backgroundImage: bg.kind === 'image' && bg.url.startsWith('blob:') ? await blobOf(bg.url) : undefined,
-    thumbnail: await thumbnailBlob(node),
-  }
+  return { ...(await toRecord(id, name)), thumbnail: await thumbnailBlob(node) }
 }
 
 export function Library({ tab: initialTab, stageRef, onClose }: Props) {
   const [tab, setTab] = useState(initialTab)
-  const { project, screens, set, openProject } = useEditor()
+  const { project, screens, overlays, set, openProject } = useEditor()
   const [projects, setProjects] = useState<ProjectRecord[]>([])
   const [name, setName] = useState(project?.name ?? 'Untitled')
   const [status, setStatus] = useState('')
@@ -101,7 +84,7 @@ export function Library({ tab: initialTab, stageRef, onClose }: Props) {
         {tab === 'templates' ? (
           <div className="cards">
             {TEMPLATES.map((t) => {
-              const settings = applyTemplate(t, screens)
+              const settings = applyTemplate(t, screens, overlays)
               return (
                 <button
                   key={t.id}

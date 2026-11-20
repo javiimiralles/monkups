@@ -4,7 +4,7 @@ import { Sidebar } from './components/Sidebar'
 import { Stage } from './components/Stage'
 import { frameSize } from './domain/scene'
 import { copyImage, downloadImage } from './export/exportImage'
-import { MAX_SCREENS, isVideoFormat, useEditor, type ExportFormat } from './state/editorStore'
+import { MAX_SCREENS, isVideoFormat, selectedScreenId, useEditor, type ExportFormat } from './state/editorStore'
 
 const FORMATS: { id: ExportFormat; label: string }[] = [
   { id: 'png', label: 'PNG' },
@@ -33,9 +33,10 @@ export function App() {
       if (target && (target.isContentEditable || target.closest('input, textarea'))) return
       const file = [...(e.clipboardData?.files ?? [])].find((f) => f.type.startsWith('image/'))
       if (!file) return
-      const { screens, selectedScreen, replaceScreenMedia } = useEditor.getState()
+      const { screens, selection, replaceScreenMedia } = useEditor.getState()
+      const selected = selectedScreenId(selection)
       // With every slot used, a paste replaces the selected screen instead of being refused.
-      if (screens.length >= MAX_SCREENS && media[selectedScreen]) replaceScreenMedia(selectedScreen, file)
+      if (screens.length >= MAX_SCREENS && selected && media[selected]) replaceScreenMedia(selected, file)
       else addScreens([file])
     }
     window.addEventListener('paste', onPaste)
