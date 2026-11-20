@@ -12,7 +12,7 @@ type Props = { tab: LibraryTab; stageRef: RefObject<HTMLDivElement | null>; onCl
 
 /** Opening a project replaces the current image; ask first so unsaved work is not lost silently. */
 export const confirmDiscard = () =>
-  !useEditor.getState().mediaUrl || window.confirm('Discard the current design? Unsaved changes will be lost.')
+  !Object.keys(useEditor.getState().media).length || window.confirm('Discard the current design? Unsaved changes will be lost.')
 
 const blobOf = (url: string) => fetch(url).then((r) => r.blob())
 
@@ -24,8 +24,12 @@ async function snapshot(node: HTMLElement, id: string, name: string): Promise<Pr
     name,
     updatedAt: Date.now(),
     settings: pickSettings(st),
-    media: st.mediaUrl ? await blobOf(st.mediaUrl) : undefined,
-    mediaSize: st.mediaSize ?? undefined,
+    screens: await Promise.all(
+      st.screens.map(async ({ id }) => {
+        const m = st.media[id]
+        return m ? { id, media: await blobOf(m.url), mediaSize: m.size } : { id }
+      }),
+    ),
     backgroundImage: bg.kind === 'image' && bg.url.startsWith('blob:') ? await blobOf(bg.url) : undefined,
     thumbnail: await thumbnailBlob(node),
   }
@@ -33,7 +37,7 @@ async function snapshot(node: HTMLElement, id: string, name: string): Promise<Pr
 
 export function Library({ tab: initialTab, stageRef, onClose }: Props) {
   const [tab, setTab] = useState(initialTab)
-  const { project, set, openProject } = useEditor()
+  const { project, screens, set, openProject } = useEditor()
   const [projects, setProjects] = useState<ProjectRecord[]>([])
   const [name, setName] = useState(project?.name ?? 'Untitled')
   const [status, setStatus] = useState('')
@@ -97,7 +101,7 @@ export function Library({ tab: initialTab, stageRef, onClose }: Props) {
         {tab === 'templates' ? (
           <div className="cards">
             {TEMPLATES.map((t) => {
-              const settings = applyTemplate(t)
+              const settings = applyTemplate(t, screens)
               return (
                 <button
                   key={t.id}
@@ -108,7 +112,10 @@ export function Library({ tab: initialTab, stageRef, onClose }: Props) {
                   }}
                 >
                   <div className="card-preview" style={{ background: backgroundCss(settings.background) }}>
-                    <span className="tag">{getDevice(settings.deviceId).label}</span>
+                    <span className="tag">
+                      {getDevice(settings.screens[0].deviceId).label}
+                      {settings.screens.length > 1 && ` ×${settings.screens.length}`}
+                    </span>
                   </div>
                   <span>{t.name}</span>
                 </button>

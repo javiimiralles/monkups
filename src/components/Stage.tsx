@@ -12,9 +12,8 @@ const PADDING = 0.08
 export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
   const fileRef = useRef<HTMLInputElement>(null)
   const {
-    mediaUrl,
-    mediaSize,
-    deviceId,
+    screens,
+    media,
     ratio,
     radius,
     frameStyle,
@@ -25,8 +24,12 @@ export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
     watermark,
     animation,
     playhead,
-    setMedia,
+    addScreens,
   } = useEditor()
+  // ponytail: only the first screen renders until the multi-screen stage lands in the next commit.
+  const mediaUrl = media[screens[0].id]?.url
+  const mediaSize = media[screens[0].id]?.size
+  const deviceId = screens[0].deviceId
   // The animation pose adds to the static design rotation; with no playhead the design is shown as-is.
   const pose = playhead === null ? IDENTITY : poseAt(animation.preset, playhead)
   // The focus only pivots zoom presets; otherwise the static rotation keeps its centered pivot.
@@ -77,7 +80,7 @@ export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
         accept="image/*"
         hidden
         onChange={(e) => {
-          if (e.target.files?.[0]) setMedia(e.target.files[0])
+          addScreens([...(e.target.files ?? [])])
           e.target.value = ''
         }}
       />

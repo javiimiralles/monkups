@@ -150,7 +150,9 @@ export function Sidebar() {
 
 function FramePanel() {
   const s = useEditor()
-  const device = getDevice(s.deviceId)
+  const screen = s.screens.find((sc) => sc.id === s.selectedScreen) ?? s.screens[0]
+  const setDevice = (deviceId: string) => s.setScreen(screen.id, { deviceId })
+  const device = getDevice(screen.deviceId)
   const models = DEVICES.filter((d) => d.kind === device.kind)
   // Hardware frames have fixed corners and body; radius and style only apply to screenshots and browser windows.
   const hardware = device.kind !== 'screenshot' && device.kind !== 'browser'
@@ -168,10 +170,10 @@ function FramePanel() {
             label: g.label,
             preview: <DevicePreview device={DEVICES.find((d) => d.kind === g.kind)!} />,
           }))}
-          onChange={(kind) => s.set({ deviceId: DEVICES.find((d) => d.kind === kind)!.id })}
+          onChange={(kind) => setDevice(DEVICES.find((d) => d.kind === kind)!.id)}
         />
         {models.length > 1 && (
-          <select aria-label="Model" value={s.deviceId} onChange={(e) => s.set({ deviceId: e.target.value })}>
+          <select aria-label="Model" value={screen.deviceId} onChange={(e) => setDevice(e.target.value)}>
             {models.map((d) => (
               <option key={d.id} value={d.id}>
                 {d.label}

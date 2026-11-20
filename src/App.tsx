@@ -4,7 +4,7 @@ import { Sidebar } from './components/Sidebar'
 import { Stage } from './components/Stage'
 import { frameSize } from './domain/scene'
 import { copyImage, downloadImage } from './export/exportImage'
-import { isVideoFormat, useEditor, type ExportFormat } from './state/editorStore'
+import { MAX_SCREENS, isVideoFormat, useEditor, type ExportFormat } from './state/editorStore'
 
 const FORMATS: { id: ExportFormat; label: string }[] = [
   { id: 'png', label: 'PNG' },
@@ -15,7 +15,7 @@ const FORMATS: { id: ExportFormat; label: string }[] = [
 ]
 
 export function App() {
-  const { mediaUrl, exportFormat, exportScale, project, animation, playhead, ratio, setMedia, set, newProject } =
+  const { media, exportFormat, exportScale, project, animation, playhead, ratio, notice, addScreens, set, newProject } =
     useEditor()
   const [busy, setBusy] = useState(false)
   const animated = animation.preset !== 'none'
@@ -24,16 +24,23 @@ export function App() {
   const [dragging, setDragging] = useState(false)
   const stageRef = useRef<HTMLDivElement>(null)
   const [status, setStatus] = useState('')
-  const locked = !mediaUrl || busy || playhead !== null
+  const locked = !Object.keys(media).length || busy || playhead !== null
 
   useEffect(() => {
     const onPaste = (e: ClipboardEvent) => {
+      // Pasting into a text field (project name, watermark) must not add a screen.
+      const target = e.target as HTMLElement | null
+      if (target && (target.isContentEditable || target.closest('input, textarea'))) return
       const file = [...(e.clipboardData?.files ?? [])].find((f) => f.type.startsWith('image/'))
-      if (file) setMedia(file)
+      if (!file) return
+      const { screens, selectedScreen, replaceScreenMedia } = useEditor.getState()
+      // With every slot used, a paste replaces the selected screen instead of being refused.
+      if (screens.length >= MAX_SCREENS && media[selectedScreen]) replaceScreenMedia(selectedScreen, file)
+      else addScreens([file])
     }
     window.addEventListener('paste', onPaste)
     return () => window.removeEventListener('paste', onPaste)
-  }, [setMedia])
+  }, [addScreens, media])
 
   const run = async (label: string, job: (node: HTMLElement) => Promise<void>) => {
     if (!stageRef.current) return
@@ -89,8 +96,7 @@ export function App() {
       onDrop={(e) => {
         e.preventDefault()
         setDragging(false)
-        const file = e.dataTransfer.files[0]
-        if (file) setMedia(file)
+        addScreens([...e.dataTransfer.files])
       }}
     >
       <header className="topbar">
@@ -158,6 +164,7 @@ export function App() {
             <span key={part}>{part}</span>
           ))}
           {status && <span className="status">{status}</span>}
+          {notice && <span className="status notice">{notice}</span>}
         </p>
       </main>
       <Sidebar />

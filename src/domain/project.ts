@@ -7,11 +7,36 @@ import {
   type WatermarkPosition,
 } from './scene'
 import type { Animation } from './animation'
+import type { Layout } from './layout'
 import type { FrameStyle, Rotation } from './styles'
+
+/** One screenshot slot: its device and its own placement on top of the layout preset. */
+export type ScreenSettings = {
+  id: string
+  deviceId: string
+  /** Offset from the layout slot, in percent of the stage width / height. */
+  dx: number
+  dy: number
+  /** Size relative to the layout slot. */
+  scale: number
+}
+
+export const MAX_SCREENS = 6
+
+const FIRST_SCREEN = 'screen-1'
+export const newScreen = (deviceId: string, id: string = crypto.randomUUID()): ScreenSettings => ({
+  id,
+  deviceId,
+  dx: 0,
+  dy: 0,
+  scale: 1,
+})
 
 /** Every design choice a project or template stores; media and export preferences are separate. */
 export type Settings = {
-  deviceId: string
+  /** Frame look (style, radius, shadow, rotation) is shared; the device model is per screen. */
+  screens: ScreenSettings[]
+  layout: Layout
   ratio: RatioId
   radius: number
   frameStyle: FrameStyle
@@ -24,7 +49,8 @@ export type Settings = {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-  deviceId: 'screenshot',
+  screens: [newScreen('screenshot', FIRST_SCREEN)],
+  layout: { preset: 'row', gap: 4 },
   ratio: '4:3',
   radius: 20,
   frameStyle: 'default',
@@ -42,7 +68,12 @@ export function pickSettings(state: Settings): Settings {
   return Object.fromEntries(KEYS.map((k) => [k, state[k]])) as Settings
 }
 
-export type Template = { id: string; name: string; settings: Partial<Settings> }
+/** `deviceId` is shorthand for one screen; `screens` lists devices of a multi-screen template. */
+export type Template = {
+  id: string
+  name: string
+  settings: Partial<Omit<Settings, 'screens'>> & { deviceId?: string; screens?: string[] }
+}
 
 const gradient = (from: string, to: string, angle = 135): Background => ({ kind: 'gradient', from, to, angle })
 
@@ -112,6 +143,16 @@ export const TEMPLATES: Template[] = [
     },
   },
   {
+    id: 'app-trio',
+    name: 'App Trio',
+    settings: {
+      screens: ['iphone-17-pro', 'iphone-17-pro', 'iphone-17-pro'],
+      layout: { preset: 'row', gap: 4 },
+      ratio: '16:9',
+      background: gradient('#a1c4fd', '#c2e9fb', 160),
+    },
+  },
+  {
     id: 'border-pop',
     name: 'Border Pop',
     settings: {
@@ -123,25 +164,53 @@ export const TEMPLATES: Template[] = [
   },
 ]
 
-/** Saved projects may predate newer settings; missing ones fall back to their defaults. */
-export function restoreSettings(saved: Partial<Settings>): Settings {
-  return { ...DEFAULT_SETTINGS, ...saved }
+/**
+ * Saved projects may predate newer settings; missing ones fall back to their defaults.
+ * Projects saved before multi-screen had one `deviceId`; it becomes the first screen.
+ */
+export function restoreSettings(saved: Partial<Settings> & { deviceId?: string }): Settings {
+  const { deviceId, ...rest } = saved
+  const screens = rest.screens ?? [newScreen(deviceId ?? DEFAULT_SETTINGS.screens[0].deviceId, FIRST_SCREEN)]
+  return { ...DEFAULT_SETTINGS, ...rest, screens }
 }
 
-export function applyTemplate(template: Template): Settings {
-  return { ...DEFAULT_SETTINGS, ...template.settings }
+/**
+ * Template settings on top of the defaults. Passing the current screens keeps their ids (and so their media):
+ * there are as many screens as the larger of the two, each with the template device and the layout slot.
+ */
+export function applyTemplate(template: Template, current: ScreenSettings[] = []): Settings {
+  const { deviceId, screens, ...rest } = template.settings
+  const devices = screens ?? [deviceId ?? DEFAULT_SETTINGS.screens[0].deviceId]
+  const count = Math.max(devices.length, current.length)
+  return {
+    ...DEFAULT_SETTINGS,
+    ...rest,
+    screens: Array.from({ length: count }, (_, i) => newScreen(devices[Math.min(i, devices.length - 1)], current[i]?.id)),
+  }
 }
+
+export type MediaSize = { width: number; height: number }
 
 export type ProjectRecord = {
   id: string
   name: string
   updatedAt: number
   settings: Settings
+  screens?: { id: string; media?: Blob; mediaSize?: MediaSize }[]
+  /** Single media of projects saved before multi-screen; read only. */
   media?: Blob
-  mediaSize?: { width: number; height: number }
+  mediaSize?: MediaSize
   /** Uploaded background images live as blobs; remote (Unsplash) backgrounds keep their URL in settings. */
   backgroundImage?: Blob
   thumbnail?: Blob
+}
+
+/** The saved media of each screen, by screen id; legacy records hold one media for the first screen. */
+export function savedMedia(record: ProjectRecord, screens: ScreenSettings[]): Record<string, { blob: Blob; size: MediaSize }> {
+  const saved = record.screens ?? [{ id: screens[0].id, media: record.media, mediaSize: record.mediaSize }]
+  return Object.fromEntries(
+    saved.flatMap((s) => (s.media && s.mediaSize ? [[s.id, { blob: s.media, size: s.mediaSize }]] : [])),
+  )
 }
 
 export function sortProjects<T extends { updatedAt: number }>(projects: T[]): T[] {
