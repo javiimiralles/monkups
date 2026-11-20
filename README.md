@@ -34,6 +34,7 @@ No backend, no accounts, no tracking: everything stays on your machine.
 - [Designing from Claude Code (MCP)](#designing-from-claude-code-mcp)
 - [Project structure](#project-structure)
 - [Tech stack](#tech-stack)
+- [License](#license)
 
 ## Features
 
@@ -166,6 +167,10 @@ monkups/
 - **[modern-screenshot](https://github.com/qq15725/modern-screenshot)** for image export
 - **[Mediabunny](https://mediabunny.dev)** and **[gifenc](https://github.com/mattdesl/gifenc)** for video and GIF export
 - **[Vitest](https://vitest.dev)** for tests
+
+## License
+
+Released under the [MIT License](LICENSE).
 
 ---
 

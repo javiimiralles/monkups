@@ -1,2 +1,11 @@
+# Dependencies and build output
 node_modules
 dist
+
+# Environment and logs
+.env*
+*.log
+
+# Local agent and tool state
+.claude/
+.atl/
