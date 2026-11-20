@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { ANGLE_PRESETS } from '../render3d/angles'
+import { projectedAspect } from '../render3d/fit'
 import { DEVICES, deviceAspect, fitBox, getDevice } from './devices'
 
 describe('fitBox', () => {
@@ -31,11 +33,27 @@ describe('deviceAspect', () => {
   })
 })
 
+describe('realistic devices', () => {
+  it('offers a 3D phone and a 3D laptop', () => {
+    expect(getDevice('phone-3d')).toMatchObject({ kind: '3d', model: 'phone', label: 'Phone 3D' })
+    expect(getDevice('laptop-3d')).toMatchObject({ kind: '3d', model: 'laptop', label: 'Laptop 3D' })
+  })
+
+  it('takes the aspect the renderer frames for each angle, whatever the media', () => {
+    for (const model of ['phone', 'laptop'] as const)
+      for (const angle of ANGLE_PRESETS) {
+        const device = getDevice(`${model}-3d`)
+        expect(deviceAspect(device, 1.5, 0, angle)).toBeCloseTo(projectedAspect(model, angle), 3)
+        expect(deviceAspect(device, 0.4, 3, angle)).toBe(deviceAspect(device, 1.5, 0, angle))
+      }
+  })
+})
+
 describe('DEVICES', () => {
   it('has unique ids and covers every family from the spec', () => {
     const ids = DEVICES.map((d) => d.id)
     expect(new Set(ids).size).toBe(ids.length)
-    expect(new Set(DEVICES.map((d) => d.kind))).toEqual(new Set(['screenshot', 'browser', 'phone', 'tablet', 'laptop']))
+    expect(new Set(DEVICES.map((d) => d.kind))).toEqual(new Set(['screenshot', 'browser', 'phone', 'tablet', 'laptop', '3d']))
     expect(ids).toEqual(expect.arrayContaining(['safari-light', 'safari-dark', 'chrome-light', 'chrome-dark']))
   })
 

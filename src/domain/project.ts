@@ -10,6 +10,7 @@ import type { Animation } from './animation'
 import type { Layout } from './layout'
 import { newOverlay, type Overlay } from './overlays'
 import type { FrameStyle, Rotation } from './styles'
+import type { AnglePreset, DeviceColor } from '../render3d/angles'
 
 /** One screenshot slot: its device and its own placement on top of the layout preset. */
 export type ScreenSettings = {
@@ -20,6 +21,9 @@ export type ScreenSettings = {
   dy: number
   /** Size relative to the layout slot. */
   scale: number
+  /** Camera angle and body colour of realistic (3D) devices; other devices ignore them. */
+  angle: AnglePreset
+  color: DeviceColor
 }
 
 export const MAX_SCREENS = 6
@@ -31,6 +35,8 @@ export const newScreen = (deviceId: string, id: string = crypto.randomUUID()): S
   dx: 0,
   dy: 0,
   scale: 1,
+  angle: 'front',
+  color: 'silver',
 })
 
 /** Every design choice a project or template stores; media and export preferences are separate. */
@@ -79,7 +85,10 @@ export function pickSettings(state: Settings): Settings {
 export type Template = {
   id: string
   name: string
-  settings: Partial<Omit<Settings, 'screens'>> & { deviceId?: string; screens?: (string | Omit<ScreenSettings, 'id'>)[] }
+  settings: Partial<Omit<Settings, 'screens'>> & {
+    deviceId?: string
+    screens?: (string | (Pick<ScreenSettings, 'deviceId'> & Partial<Omit<ScreenSettings, 'id'>>))[]
+  }
 }
 
 const gradient = (from: string, to: string, angle = 135): Background => ({ kind: 'gradient', from, to, angle })
@@ -200,10 +209,13 @@ export const TEMPLATES: Template[] = [
 /**
  * Saved projects may predate newer settings; missing ones fall back to their defaults.
  * Projects saved before multi-screen had one `deviceId`; it becomes the first screen.
+ * Screens saved before realistic devices get the default angle and colour.
  */
 export function restoreSettings(saved: Partial<Settings> & { deviceId?: string }): Settings {
   const { deviceId, ...rest } = saved
-  const screens = rest.screens ?? [newScreen(deviceId ?? DEFAULT_SETTINGS.screens[0].deviceId, FIRST_SCREEN)]
+  const screens = rest.screens?.map((s) => ({ ...newScreen(s.deviceId, s.id), ...s })) ?? [
+    newScreen(deviceId ?? DEFAULT_SETTINGS.screens[0].deviceId, FIRST_SCREEN),
+  ]
   return { ...DEFAULT_SETTINGS, ...rest, screens }
 }
 
@@ -223,7 +235,7 @@ export function applyTemplate(template: Template, current: ScreenSettings[] = []
     screens: Array.from({ length: count }, (_, i) => {
       const d = devices[Math.min(i, devices.length - 1)]
       const screen = newScreen(typeof d === 'string' ? d : d.deviceId, current[i]?.id)
-      return typeof d === 'string' ? screen : { ...d, id: screen.id }
+      return typeof d === 'string' ? screen : { ...screen, ...d, id: screen.id }
     }),
   }
 }

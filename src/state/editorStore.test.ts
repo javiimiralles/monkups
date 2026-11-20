@@ -66,7 +66,7 @@ describe('screens', () => {
   })
 
   it('fills the other empty screens before appending new ones', async () => {
-    state().set({ screens: ['a', 'b', 'c'].map((id) => ({ id, deviceId: 'iphone-16', dx: 0, dy: 0, scale: 1 })) })
+    state().set({ screens: ['a', 'b', 'c'].map((id) => ({ id, deviceId: 'iphone-16', dx: 0, dy: 0, scale: 1, angle: 'front' as const, color: 'silver' as const })) })
     state().set({ selection: { kind: 'screen', id: 'a' } })
     state().addScreens([png()])
     await flush()

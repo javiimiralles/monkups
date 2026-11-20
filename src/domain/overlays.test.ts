@@ -56,7 +56,7 @@ describe('CTA templates', () => {
 
   it('CTA Left is 16:9 with the phone on the right, and keeps the current screens (and so their media)', () => {
     const cta = TEMPLATES.find((t) => t.name === 'CTA Left')!
-    const settings = applyTemplate(cta, [{ id: 'mine', deviceId: 'screenshot', dx: 0, dy: 0, scale: 1 }])
+    const settings = applyTemplate(cta, [{ id: 'mine', deviceId: 'screenshot', dx: 0, dy: 0, scale: 1, angle: 'front' as const, color: 'silver' as const }])
     expect(settings.ratio).toBe('16:9')
     expect(settings.screens[0].id).toBe('mine')
     expect(settings.screens[0].dx).toBeGreaterThan(0)

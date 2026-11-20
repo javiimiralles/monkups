@@ -36,8 +36,8 @@ describe('applyTemplate', () => {
 
   it('keeps the ids of the current screens so their media survives', () => {
     const current = [
-      { id: 'a', deviceId: 'screenshot', dx: 5, dy: 5, scale: 1.2 },
-      { id: 'b', deviceId: 'screenshot', dx: 0, dy: 0, scale: 1 },
+      { id: 'a', deviceId: 'screenshot', dx: 5, dy: 5, scale: 1.2, angle: 'front' as const, color: 'silver' as const },
+      { id: 'b', deviceId: 'screenshot', dx: 0, dy: 0, scale: 1, angle: 'front' as const, color: 'silver' as const },
     ]
     const trio = TEMPLATES.find((t) => t.id === 'app-trio')!
     const three = applyTemplate(trio, current).screens
@@ -66,17 +66,24 @@ describe('restoreSettings', () => {
     const { screens, layout, ...rest } = DEFAULT_SETTINGS
     const legacy = { ...rest, deviceId: 'macbook-pro-14' } as unknown as Partial<Settings>
     const restored = restoreSettings(legacy)
-    expect(restored.screens).toEqual([{ id: 'screen-1', deviceId: 'macbook-pro-14', dx: 0, dy: 0, scale: 1 }])
+    expect(restored.screens).toEqual([
+      { id: 'screen-1', deviceId: 'macbook-pro-14', dx: 0, dy: 0, scale: 1, angle: 'front', color: 'silver' },
+    ])
     expect(restored.layout).toEqual(DEFAULT_SETTINGS.layout)
     expect(restored).not.toHaveProperty('deviceId')
   })
 
   it('keeps saved screens as they are', () => {
     const screens = [
-      { id: 'x', deviceId: 'iphone-16', dx: 1, dy: 2, scale: 0.8 },
-      { id: 'y', deviceId: 'iphone-16', dx: 0, dy: 0, scale: 1 },
+      { id: 'x', deviceId: 'laptop-3d', dx: 1, dy: 2, scale: 0.8, angle: 'top' as const, color: 'space-black' as const },
+      { id: 'y', deviceId: 'phone-3d', dx: 0, dy: 0, scale: 1, angle: 'low-hero' as const, color: 'silver' as const },
     ]
     expect(restoreSettings({ screens }).screens).toEqual(screens)
+  })
+
+  it('gives screens saved before realistic devices the default angle and colour', () => {
+    const old = [{ id: 'x', deviceId: 'iphone-16', dx: 1, dy: 2, scale: 0.8 }] as Settings['screens']
+    expect(restoreSettings({ screens: old }).screens).toEqual([{ ...old[0], angle: 'front', color: 'silver' }])
   })
 })
 

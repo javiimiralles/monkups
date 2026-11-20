@@ -1,4 +1,6 @@
-export type DeviceKind = 'screenshot' | 'browser' | 'phone' | 'tablet' | 'laptop'
+import type { AnglePreset, DeviceModel } from '../render3d/angles'
+
+export type DeviceKind = 'screenshot' | 'browser' | 'phone' | 'tablet' | 'laptop' | '3d'
 
 export type Device = {
   id: string
@@ -8,6 +10,8 @@ export type Device = {
   screen?: [number, number]
   browser?: 'safari' | 'chrome'
   theme?: 'light' | 'dark'
+  /** Realistic devices: the model the 3D renderer draws. */
+  model?: DeviceModel
 }
 
 /**
@@ -36,6 +40,8 @@ export const DEVICES: Device[] = [
   { id: 'ipad-pro-13', label: 'iPad Pro 13"', kind: 'tablet', screen: [2064, 2752] },
   { id: 'macbook-air-13', label: 'MacBook Air 13"', kind: 'laptop', screen: [2560, 1664] },
   { id: 'macbook-pro-14', label: 'MacBook Pro 14"', kind: 'laptop', screen: [3024, 1964] },
+  { id: 'phone-3d', label: 'Phone 3D', kind: '3d', model: 'phone' },
+  { id: 'laptop-3d', label: 'Laptop 3D', kind: '3d', model: 'laptop' },
 ]
 
 export const DEVICE_GROUPS: { label: string; kind: DeviceKind }[] = [
@@ -44,7 +50,17 @@ export const DEVICE_GROUPS: { label: string; kind: DeviceKind }[] = [
   { label: 'iPhone', kind: 'phone' },
   { label: 'iPad', kind: 'tablet' },
   { label: 'Mac', kind: 'laptop' },
+  { label: 'Realistic', kind: '3d' },
 ]
+
+/**
+ * Width / height the 3D renderer frames each model at (`projectedAspect` in src/render3d/fit.ts).
+ * Copied here so layout never loads three.js; a unit test keeps both in sync.
+ */
+const REALISTIC_ASPECT: Record<DeviceModel, Record<AnglePreset, number>> = {
+  phone: { front: 0.5879, 'three-quarter-left': 0.5296, 'three-quarter-right': 0.5296, 'low-hero': 0.6058, top: 0.7055 },
+  laptop: { front: 1.4925, 'three-quarter-left': 1.3584, 'three-quarter-right': 1.3584, 'low-hero': 1.915, top: 0.981 },
+}
 
 export function getDevice(id: string): Device {
   return DEVICES.find((d) => d.id === id) ?? DEVICES[0]
@@ -52,9 +68,9 @@ export function getDevice(id: string): Device {
 
 /**
  * Width / height of the whole device, frame included.
- * `stylePad` (em) is the frame style drawn around screenshots and browser windows.
+ * `stylePad` (em) is the frame style drawn around screenshots and browser windows; `angle` frames realistic devices.
  */
-export function deviceAspect(device: Device, mediaAspect: number, stylePad = 0): number {
+export function deviceAspect(device: Device, mediaAspect: number, stylePad = 0, angle: AnglePreset = 'front'): number {
   const screenAspect = device.screen ? device.screen[0] / device.screen[1] : mediaAspect
   const g = GEOMETRY
   const inner = 100 - 2 * stylePad
@@ -75,6 +91,8 @@ export function deviceAspect(device: Device, mediaAspect: number, stylePad = 0):
       const screenWidth = g.laptopLidWidth - 2 * g.laptopBezel
       return 100 / (screenWidth / screenAspect + 2 * g.laptopBezel + g.laptopBase)
     }
+    case '3d':
+      return REALISTIC_ASPECT[device.model ?? 'phone'][angle]
   }
 }
 
