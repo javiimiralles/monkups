@@ -10,11 +10,11 @@ Branch: feat/phase-6-multi-screen (from master) · Delivery: ask-on-risk (foreca
 
 ## Tasks
 
-- [ ] T1 S1-S4 Domain: `Screen` model, `layoutScreens()` presets, legacy migration in `restoreSettings`/templates, unit tests — route: inline — Risk: item 1 (persisted format change) — own commit
-- [ ] T2 S1-S2 Store + persistence: screens array with per-screen media, select/add/replace/remove/reorder, ProjectRecord media per screen, Library save/open — route: inline — Risk: item 1 — own commit
-- [ ] T3 S1, S4 Stage: render N device frames, selection outline + drag outside the exported node, multi-file drop/picker, paste rule — route: inline
-- [ ] T4 S1, S3-S4 Sidebar: "Screens" group (thumbnails, add/replace/remove/reorder), per-screen Device + "Apply to all", "Layout" group (preset, gap, scale); 1-2 multi-screen templates — route: inline
-- [ ] T5 S1-S4 Verification in headless Chrome + independent verifier (item 1) — route: delegated verifier
+- [x] T1 S1-S4 Domain: `Screen` model, `layoutScreens()` presets, legacy migration in `restoreSettings`/templates, unit tests — route: inline — Risk: item 1 (persisted format change) — own commit — 429d087
+- [x] T2 S1-S2 Store + persistence: screens array with per-screen media, select/add/replace/remove/reorder, ProjectRecord media per screen, Library save/open — route: inline — Risk: item 1 — own commit — 429d087
+- [x] T3 S1, S4 Stage: render N device frames, selection outline + drag outside the exported node, multi-file drop/picker, paste rule — route: inline — 9e6abf9, fix 04003d7
+- [x] T4 S1, S3-S4 Sidebar: "Screens" group (thumbnails, add/replace/remove/reorder), per-screen Device + "Apply to all", "Layout" group (preset, gap, scale); 1-2 multi-screen templates — route: inline — 9e6abf9
+- [x] T5 S1-S4 Verification in headless Chrome + independent verifier (item 1) — route: delegated verifier — verifier + native review
 
 ## Log
 
@@ -29,3 +29,5 @@ Branch: feat/phase-6-multi-screen (from master) · Delivery: ask-on-risk (foreca
   - Sidebar (T4): new "Screens" group above "Device"; "Device" edits the selected screen and offers "Apply to all"; "Layout" group with preset, gap and per-screen scale. Templates: add "App Trio" (3 phones, Row, 16:9) as a first multi-screen template.
   - Invariant to prove in T5: a single-screen design exports pixel-identical to the current master (differential check: same settings + media exported from a scratch copy of master and from the branch, compared by pixel hash). Old projects saved in IndexedDB open unchanged.
   - Out of scope (not asked): per-screen frame style/shadow, free rotation handles, snapping guides, more than 6 screens.
+- L3 (2026-11-20) "comienza con la implementación de todas las fases. Lanza los subagentes que necesites"
+- L4 (2026-11-20) Done by one delegated writer (context backstop: three phases in one session). Evidence: 67 tests; build OK; headless Chrome: 3 screens, Row/Cascade/Grid, drag, per-screen device, save/reload/reopen, 7th image refused, single-screen PNG byte-identical to master on 3 designs. Deviations: add fills every empty screen before appending; templates list screens. Independent verifier (item 1): migration PASS (5 legacy records, stored records unchanged); blockers B1 (Tilt/Float/Zoom with static rotation rendered a different pose: nested perspective transforms) and B2 (1/64 px shift on chrome-dark border 16:9) fixed in 04003d7 (lone screen flex-centred with one summed transform; multi-screen pose angles summed per screen); recheck: all frames and the PNG identical to baseline. Advisories: two addScreens before the first image decodes target the same empty screen; single-device template resets per-screen offsets (intended). Native review (lenses risk + reliability) of 9657107..9e6abf9 approved and acknowledged (lineage review-b2d589eff017b012); non-blocking follow-ups R3-001 Stage.tsx:141-150, R3-002 editorStore.ts:102-106, R3-003 project.ts:210-212, R3-004 App.tsx:30-39.

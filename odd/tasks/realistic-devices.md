@@ -10,11 +10,11 @@ Status: approach A (three.js) confirmed by the user (L4). Implement last, after 
 
 ## Tasks
 
-- [ ] T1 S1 Spike (go/no-go): WebGL canvas inside the stage is captured by PNG/JPEG export and by per-frame video export at 2x; measure frame render time — route: inline — Risk: item 5 (new dependency `three`)
-- [ ] T2 S1, S3 Procedural phone model (rounded body, camera island, glass screen with the screenshot as texture, PBR materials, contact shadow) — route: inline (parallel writer with T3 only if both start together)
-- [ ] T3 S1, S3 Procedural laptop model (lid + base hinge, drawn keyboard and trackpad, screen texture) — route: inline (see T2)
-- [ ] T4 S2-S3 Integration: `kind: '3d'` devices in the catalog, lazy-loaded renderer chunk, Sidebar angle/colour controls, transparent canvas over existing backgrounds/scenes — route: inline
-- [ ] T5 S1-S3 Animation presets drive the 3D camera, video export, headless Chrome verification + independent verifier (item 5) — route: inline + delegated verifier
+- [x] T1 S1 Spike (go/no-go): WebGL canvas inside the stage is captured by PNG/JPEG export and by per-frame video export at 2x; measure frame render time — route: inline — Risk: item 5 (new dependency `three`) — f6455ef
+- [x] T2 S1, S3 Procedural phone model (rounded body, camera island, glass screen with the screenshot as texture, PBR materials, contact shadow) — route: inline (parallel writer with T3 only if both start together) — f32b777
+- [x] T3 S1, S3 Procedural laptop model (lid + base hinge, drawn keyboard and trackpad, screen texture) — route: inline (see T2) — f32b777
+- [x] T4 S2-S3 Integration: `kind: '3d'` devices in the catalog, lazy-loaded renderer chunk, Sidebar angle/colour controls, transparent canvas over existing backgrounds/scenes — route: inline — 15cab2c, 9d89bbc
+- [x] T5 S1-S3 Animation presets drive the 3D camera, video export, headless Chrome verification + independent verifier (item 5) — route: inline + delegated verifier — 21e37ed + verifier
 
 ## Log
 
@@ -30,3 +30,6 @@ Status: approach A (three.js) confirmed by the user (L4). Implement last, after 
   - Integration (T4): `DeviceKind` gains `'3d'` with `model: 'phone' | 'laptop'`; `deviceAspect` uses the projected bounds for the chosen angle; the existing CSS 3D rotation is disabled for 3D devices (camera angle replaces it). Renderer module is a dynamic import like the video exporter.
   - Tests: unit tests for angle presets -> camera pose and aspect; geometry is checked visually (headless Chrome screenshots of each angle) because no unit test can catch "looks wrong" (item 6 noted).
 - L4 (2026-11-20) "La opción de threejs me parece bien." Approach A confirmed; B and C discarded.
+- L5 (2026-11-20) "comienza con la implementación de todas las fases. Lanza los subagentes que necesites"
+- L6 (2026-11-20) T1-T3 by a writer in an isolated worktree (parallel with phase 6), cherry-picked onto phase 7. Spike: modern-screenshot captures WebGL with preserveDrawingBuffer; 2x needs a re-render at pixelRatio 2; large 2D canvases upload black, so screens take decoded images/ImageBitmaps; ~20 ms/frame at 1920x1440. three 0.187.0 + @types/three 0.187.0. Screens and glass use a dim custom environment (RoomEnvironment blew screens out). T4-T5 by a second writer: "Phone 3D"/"Laptop 3D" in a Realistic group, per-screen angle + color (defaults front/silver), projected aspects copied into the domain with a sync test so three stays in the lazy renderer chunk (590 kB, 150 kB gzip; main +1.3 kB gzip), export/captureHooks.ts `withCapture` redraws 3D canvases at export ratio for PNG/JPEG/clipboard/thumbnail/video, animation pose stays a CSS transform (camera does not move), templates "Laptop + Phone" and "Laptop Hero". Evidence: 111 tests; build OK; no-3D designs byte-identical to f32b777 (5 designs); all angles x colours exported; MP4 zoom 45 frames; save/reopen. Known weaknesses: low-hero laptop screen washed out by glass reflection; templates keep the current screen count.
+- L7 (2026-11-20) Independent verifier (items 1, 5, 6) on f6455ef..a42c39e vs 3697d2d: S1-S3 PASS, no blockers; legacy/phase 6/phase 7 records export identical and are not rewritten on open; three only in the lazy renderer chunk; no-3D designs byte-identical; PNG 1x/2x, JPEG, MP4, WebM, GIF OK; no WebGL context leak after 30 device switches and 20 add/remove cycles. Advisories: 3D canvas is scaled by CSS during video zoom (slightly soft at 1.56x); Laptop + Phone sits left of centre and each device has its own camera; phones are small in 4:3; a42c39e makes the 7th-image notice unreachable through the disabled button (paste/drop still show it).

@@ -11,12 +11,12 @@ Branch: feat/phase-7-text-logos (stacked on feat/phase-6-multi-screen; needs its
 
 ## Tasks
 
-- [ ] T1 S2-S3 Domain: `Overlay` types and defaults, sizes in % of stage width, `restoreSettings` default `overlays: []`, unit tests — route: inline — Risk: item 1 (persisted format) — own commit
-- [ ] T2 S1-S3 Store + persistence: unified selection `{ kind: 'screen' | 'overlay', id }`, add/update/remove/duplicate/reorder, keyboard (Delete, arrows nudge, Ctrl+D), logo blobs in ProjectRecord — route: inline — Risk: item 1 — own commit
-- [ ] T3 S1, S3-S4 Stage: render overlays above the screens and outside the animation group, drag + corner resize handles outside the exported node — route: inline
-- [ ] T4 S1-S2 Sidebar "Text & logos" group: add Text / Button / Logo, inspector per kind, curated fonts — route: inline — Risk: item 5 (new font dependencies) — own commit
-- [ ] T5 S5 Inline text editing on the stage (double-click to edit, commit on blur / click outside, Escape cancels) — route: inline
-- [ ] T6 S1, S5 CTA templates (e.g. "CTA Left", "Hero Headline") + headless Chrome verification + independent verifier (items 1, 5) — route: inline + delegated verifier
+- [x] T1 S2-S3 Domain: `Overlay` types and defaults, sizes in % of stage width, `restoreSettings` default `overlays: []`, unit tests — route: inline — Risk: item 1 (persisted format) — own commit — dd85739
+- [x] T2 S1-S3 Store + persistence: unified selection `{ kind: 'screen' | 'overlay', id }`, add/update/remove/duplicate/reorder, keyboard (Delete, arrows nudge, Ctrl+D), logo blobs in ProjectRecord — route: inline — Risk: item 1 — own commit — dd85739
+- [x] T3 S1, S3-S4 Stage: render overlays above the screens and outside the animation group, drag + corner resize handles outside the exported node — route: inline — cb8ebf1
+- [x] T4 S1-S2 Sidebar "Text & logos" group: add Text / Button / Logo, inspector per kind, curated fonts — route: inline — Risk: item 5 (new font dependencies) — own commit — 51184cf
+- [x] T5 S5 Inline text editing on the stage (double-click to edit, commit on blur / click outside, Escape cancels) — route: inline — cb8ebf1
+- [x] T6 S1, S5 CTA templates (e.g. "CTA Left", "Hero Headline") + headless Chrome verification + independent verifier (items 1, 5) — route: inline + delegated verifier — 3697d2d + verifier
 
 ## Log
 
@@ -39,3 +39,4 @@ Branch: feat/phase-7-text-logos (stacked on feat/phase-6-multi-screen; needs its
   - While editing: drag/resize handles are hidden, the window paste handler and the Delete/arrow/Ctrl+D shortcuts ignore the event (target is editable), and the export/preview buttons are disabled, so the caret and focus ring never reach an export.
   - Empty text after commit keeps the overlay with a placeholder in the editor only ("Type something"), never exported; deleting stays explicit (Delete key or button).
   - Test: store-level unit test for commit/cancel; headless Chrome check: double-click, type, click outside, export, read the text from the exported image visually.
+- L5 (2026-11-20) Done by one delegated writer, rebased onto the phase 6 fix without conflicts. Fonts at 5.3.0: @fontsource-variable/inter, dm-sans, space-grotesk, fraunces, @fontsource/instrument-serif (+ Hanken Grotesk italic). Evidence: 88 tests; build OK; image 2 recreated with CTA Left, PNG 2x + MP4 with embedded fonts; inline edit/Escape/click-outside; no-overlay designs byte-identical to phase 6. Deviations: button text uses `color` (no textColor), corner handle on a button scales text size, templates with overlays replace yours and without keep them, selection can be empty, arrows/Delete act on overlays only, saving goes through store `toRecord()`. Independent verifier: S1-S5 PASS, items 1, 3, 5 PASS. Behaviour change kept: after clicking empty stage on a full canvas, Ctrl+V is refused (nothing selected); the "Add screens" button now matches (disabled) in a42c39e. Advisory: multi-font 2x PNGs vary by 1-2 levels between runs. Native assess of 9e6abf9..3697d2d: medium, review not due (under_budget).
