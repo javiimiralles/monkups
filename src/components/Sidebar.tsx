@@ -13,6 +13,7 @@ import {
 import { FRAME_STYLES, type Rotation } from '../domain/styles'
 import { MAX_SCREENS, selectedScreenId, useEditor } from '../state/editorStore'
 import { LAYOUT_PRESETS } from '../domain/layout'
+import { FONTS, fontFamily, type FontId, type Overlay } from '../domain/overlays'
 import {
   DevicePreview,
   FillPreview,
@@ -24,10 +25,11 @@ import {
 } from './Previews'
 import { UnsplashPicker } from './UnsplashPicker'
 
-type Tab = 'frame' | 'background' | 'extras'
+type Tab = 'frame' | 'background' | 'text' | 'extras'
 const TABS: [Tab, string][] = [
   ['frame', 'Frame'],
   ['background', 'Background'],
+  ['text', 'Text'],
   ['extras', 'Extras'],
 ]
 
@@ -124,6 +126,11 @@ function Group({ title, note, children }: { title: string; note?: string; childr
 
 export function Sidebar() {
   const [tab, setTab] = useState<Tab>('frame')
+  // Selecting an overlay on the stage opens its inspector.
+  const overlaySelected = useEditor((s) => (s.selection?.kind === 'overlay' ? s.selection.id : null))
+  useEffect(() => {
+    if (overlaySelected) setTab('text')
+  }, [overlaySelected])
   return (
     <aside className="inspector" aria-label="Design settings">
       <div className="tabs" role="tablist">
@@ -143,6 +150,7 @@ export function Sidebar() {
       <div className="panel" id="inspector-panel" role="tabpanel" aria-labelledby={`tab-${tab}`}>
         {tab === 'frame' && <FramePanel />}
         {tab === 'background' && <BackgroundPanel />}
+        {tab === 'text' && <TextPanel />}
         {tab === 'extras' && <ExtrasPanel />}
       </div>
     </aside>
@@ -622,6 +630,196 @@ function ExtrasPanel() {
           />
         ))}
       </Group>
+    </>
+  )
+}
+
+const WEIGHTS = [300, 400, 500, 600, 700, 800, 900]
+const IMAGE_TYPES = 'image/png,image/jpeg,image/svg+xml,image/webp'
+
+/** Text, CTA buttons and logos above the screens: add them, pick one, edit it. */
+function TextPanel() {
+  const s = useEditor()
+  const logoRef = useRef<HTMLInputElement>(null)
+  const replaceRef = useRef<HTMLInputElement>(null)
+  const selection = s.selection
+  const selected = selection?.kind === 'overlay' ? s.overlays.find((o) => o.id === selection.id) : undefined
+  const index = selected ? s.overlays.indexOf(selected) : -1
+  const name = (o: Overlay) => (o.kind === 'logo' ? 'Logo' : o.text.trim().split('\n')[0] || 'Empty text')
+
+  return (
+    <>
+      <Group title="Text & logos" note="Above the screens">
+        <div className="row-actions">
+          <button onClick={() => s.addOverlay('text')}>Add text</button>
+          <button onClick={() => s.addOverlay('button')}>Add button</button>
+          <button onClick={() => logoRef.current?.click()}>Add logo</button>
+        </div>
+        <input
+          ref={logoRef}
+          type="file"
+          accept={IMAGE_TYPES}
+          hidden
+          onChange={(e) => {
+            if (e.target.files?.[0]) s.addLogo(e.target.files[0])
+            e.target.value = ''
+          }}
+        />
+        {s.overlays.length > 0 && (
+          <div className="overlay-list" role="group" aria-label="Overlays">
+            {s.overlays.map((o) => (
+              <button
+                key={o.id}
+                aria-pressed={o.id === selected?.id}
+                onClick={() => s.set({ selection: { kind: 'overlay', id: o.id } })}
+              >
+                <small>{o.kind}</small>
+                {name(o)}
+              </button>
+            ))}
+          </div>
+        )}
+        <p className="hint">Double-click a text on the canvas to edit it in place.</p>
+      </Group>
+
+      {selected && (
+        <Group title={selected.kind === 'logo' ? 'Logo' : selected.kind === 'button' ? 'Button' : 'Text'}>
+          {selected.kind !== 'logo' && <TextFields overlay={selected} />}
+          {selected.kind === 'logo' && (
+            <>
+              <button onClick={() => replaceRef.current?.click()}>Replace image</button>
+              <input
+                ref={replaceRef}
+                type="file"
+                accept={IMAGE_TYPES}
+                hidden
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  e.target.value = ''
+                  if (file) s.replaceLogo(selected.id, file)
+                }}
+              />
+            </>
+          )}
+          <Range
+            label={selected.kind === 'button' ? 'Max width' : 'Width'}
+            unit="%"
+            value={Math.round(selected.width * 10) / 10}
+            min={2}
+            max={100}
+            step={0.5}
+            onChange={(width) => s.setOverlay(selected.id, { width })}
+          />
+          <Range
+            label="Rotation"
+            unit="°"
+            value={Math.round(selected.rotation)}
+            min={-180}
+            max={180}
+            onChange={(rotation) => s.setOverlay(selected.id, { rotation })}
+          />
+          <Range
+            label="Opacity"
+            unit="%"
+            value={selected.opacity}
+            min={0}
+            max={100}
+            onChange={(opacity) => s.setOverlay(selected.id, { opacity })}
+          />
+          <div className="row-actions">
+            <button disabled={index >= s.overlays.length - 1} onClick={() => s.moveOverlay(selected.id, 1)}>
+              Forward
+            </button>
+            <button disabled={index <= 0} onClick={() => s.moveOverlay(selected.id, -1)}>
+              Backward
+            </button>
+            <button onClick={() => s.duplicateOverlay(selected.id)}>Duplicate</button>
+            <button className="danger" onClick={() => s.removeOverlay(selected.id)}>
+              Delete
+            </button>
+          </div>
+        </Group>
+      )}
+    </>
+  )
+}
+
+/** Content and type settings of a text or button overlay; buttons add their pill. */
+function TextFields({ overlay: o }: { overlay: Exclude<Overlay, { kind: 'logo' }> }) {
+  const s = useEditor()
+  const set = (patch: Record<string, unknown>) => s.setOverlay(o.id, patch)
+  return (
+    <>
+      <textarea
+        aria-label="Text"
+        rows={3}
+        value={o.text}
+        placeholder="Type something"
+        onChange={(e) => set({ text: e.target.value })}
+      />
+      <select
+        aria-label="Font"
+        value={o.font}
+        style={{ fontFamily: fontFamily(o.font) }}
+        onChange={(e) => set({ font: e.target.value as FontId })}
+      >
+        {FONTS.map((f) => (
+          <option key={f.id} value={f.id} style={{ fontFamily: f.family }}>
+            {f.label}
+          </option>
+        ))}
+      </select>
+      <div className="pair">
+        <select aria-label="Weight" value={o.weight} onChange={(e) => set({ weight: +e.target.value })}>
+          {WEIGHTS.map((w) => (
+            <option key={w} value={w}>
+              {w}
+            </option>
+          ))}
+        </select>
+        <label className="color">
+          {o.kind === 'button' ? 'Text' : 'Color'}
+          <input type="color" value={o.color} onChange={(e) => set({ color: e.target.value })} />
+        </label>
+      </div>
+      <Range label="Size" unit="%" value={o.size} min={0.5} max={20} step={0.1} onChange={(size) => set({ size })} />
+      <Choice
+        value={o.align}
+        options={(['left', 'center', 'right'] as const).map((a) => ({ value: a, label: a[0].toUpperCase() + a.slice(1) }))}
+        onChange={(align) => set({ align })}
+      />
+      <Range label="Line height" value={o.lineHeight} min={0.8} max={2} step={0.05} onChange={(lineHeight) => set({ lineHeight })} />
+      <Range
+        label="Letter spacing"
+        unit="em"
+        value={o.letterSpacing}
+        min={-0.1}
+        max={0.4}
+        step={0.01}
+        onChange={(letterSpacing) => set({ letterSpacing })}
+      />
+      <div className="row-actions">
+        <label className="check">
+          <input type="checkbox" checked={o.uppercase} onChange={(e) => set({ uppercase: e.target.checked })} />
+          Uppercase
+        </label>
+        <label className="check">
+          <input type="checkbox" checked={o.italic} onChange={(e) => set({ italic: e.target.checked })} />
+          Italic
+        </label>
+      </div>
+      {o.kind === 'button' && (
+        <>
+          <label className="color">
+            Fill
+            <input type="color" value={o.fill} onChange={(e) => set({ fill: e.target.value })} />
+          </label>
+          <Range label="Corner radius" unit="em" value={o.radius} min={0} max={2} step={0.05} onChange={(radius) => set({ radius })} />
+          <Range label="Padding X" unit="em" value={o.padX} min={0} max={4} step={0.1} onChange={(padX) => set({ padX })} />
+          <Range label="Padding Y" unit="em" value={o.padY} min={0} max={3} step={0.1} onChange={(padY) => set({ padY })} />
+          <Range label="Border" unit="em" value={o.border} min={0} max={0.3} step={0.01} onChange={(border) => set({ border })} />
+        </>
+      )}
     </>
   )
 }

@@ -216,6 +216,19 @@ describe('overlays', () => {
     expect(revoke).toHaveBeenCalledWith(logo.src)
   })
 
+  it('replaces a logo image and releases the old one', async () => {
+    const revoke = vi.spyOn(URL, 'revokeObjectURL')
+    state().addLogo(png())
+    await flush()
+    const before = logoOf(state().overlays[0])!
+    state().replaceLogo(before.id, png())
+    await flush()
+    const after = logoOf(state().overlays[0])!
+    expect(after.id).toBe(before.id)
+    expect(after.src).not.toBe(before.src)
+    expect(revoke).toHaveBeenCalledWith(before.src)
+  })
+
   it('commits an inline edit once and cancels without changing the text', () => {
     const id = state().addOverlay('text')
     const before = (state().overlays[0] as { text: string }).text

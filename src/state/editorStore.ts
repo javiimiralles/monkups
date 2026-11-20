@@ -28,6 +28,7 @@ type Actions =
   | 'setBackgroundImage'
   | 'addOverlay'
   | 'addLogo'
+  | 'replaceLogo'
   | 'setOverlay'
   | 'removeOverlay'
   | 'duplicateOverlay'
@@ -70,6 +71,7 @@ type EditorState = Settings & {
   addOverlay: (kind: 'text' | 'button') => string
   /** Adds and selects a logo once its image size is known. */
   addLogo: (file: File) => void
+  replaceLogo: (id: string, file: File) => void
   setOverlay: (id: string, patch: OverlayPatch) => void
   removeOverlay: (id: string) => void
   /** Copies an overlay above the others and selects the copy; returns its id. */
@@ -218,6 +220,14 @@ export const useEditor = create<EditorState>((rawSet, get) => {
       if (!file.type.startsWith('image/')) return
       loadImage(file, (src, size) => {
         addOverlays(newOverlay('logo', { src, size }))
+        return true
+      })
+    },
+    replaceLogo: (id, file) => {
+      if (!file.type.startsWith('image/')) return
+      loadImage(file, (src, size) => {
+        if (!get().overlays.some((o) => o.id === id)) return false
+        get().setOverlay(id, { src, size })
         return true
       })
     },
