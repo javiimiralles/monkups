@@ -175,7 +175,11 @@ export const Stage = forwardRef<HTMLDivElement>(function Stage(_, stageRef) {
         {hasMedia ? (
           <button
             className="replace"
-            disabled={screens.length >= MAX_SCREENS && !!media[selectedScreenId(selection) ?? '']}
+            // A full canvas only takes a file into a selected empty screen.
+            disabled={screens.length >= MAX_SCREENS && (() => {
+              const id = selectedScreenId(selection)
+              return !id || !!media[id]
+            })()}
             onClick={() => fileRef.current?.click()}
           >
             Add screens
